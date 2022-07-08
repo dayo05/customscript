@@ -83,16 +83,12 @@ class ScriptGui(scriptFile: String, beginPos: String): GuiBase() {
     override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int) = mouseHandler(mouseX, mouseY) { mx, my ->
         if (!pending) super.mouseClicked(mouseX, mouseY, button)
 
-        for(x in arrows.filter { it.from == prevNs }) LogManager.getLogger().info("${x.from} ${x.to}")
-        for(x in current) {
+        for(x in current)
             if (arrows.firstOrNull { it.from == prevNs && it.to == x.ns }.run { this?.onMouseInput(this@ScriptGui, mx, my, button) == true }
-                && (x as PendingBlock).validateMouseInput(this, mx, my, button)
-            ) {
-                LogManager.getLogger().info("Next: ${x.ns}")
+                && (x as PendingBlock).validateMouseInput(this, mx, my, button)) {
                 cancelPending(x.ns)
                 break
             }
-        }
         super.mouseClicked(mouseX, mouseY, button)
     }
 

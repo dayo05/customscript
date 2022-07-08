@@ -14,6 +14,8 @@ import me.ddayo.customscript.client.gui.RenderUtil
 import me.ddayo.customscript.util.options.CompileError
 import me.ddayo.customscript.util.options.Option
 import net.minecraft.client.Minecraft
+import org.apache.logging.log4j.LogManager
+import org.lwjgl.glfw.GLFW
 import java.io.File
 
 
@@ -56,6 +58,7 @@ class ScriptGui(scriptFile: String, beginPos: String): GuiBase() {
         if(!current.any { it.ns == to }) throw IllegalStateException("Not able to load $to")
         if(!pending) throw IllegalStateException("Function is not pending")
 
+        prevNs = current.first().ns
         current = current.filter { it.ns == to }.flatMap { arrows.filter { it.from == to }.flatMap { to -> blocks.filter { it.ns == to.to }} }
 
         if(current.size > 2) {
@@ -80,12 +83,16 @@ class ScriptGui(scriptFile: String, beginPos: String): GuiBase() {
     override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int) = mouseHandler(mouseX, mouseY) { mx, my ->
         if (!pending) super.mouseClicked(mouseX, mouseY, button)
 
-        for(x in current)
-            if(arrows.first { it.from == prevNs && it.to == x.ns}.onMouseInput(this, mx, my, button)
-                &&(x as PendingBlock).validateMouseInput(this, mx, my, button)) {
+        for(x in arrows.filter { it.from == prevNs }) LogManager.getLogger().info("${x.from} ${x.to}")
+        for(x in current) {
+            if (arrows.firstOrNull { it.from == prevNs && it.to == x.ns }.run { this?.onMouseInput(this@ScriptGui, mx, my, button) == true }
+                && (x as PendingBlock).validateMouseInput(this, mx, my, button)
+            ) {
+                LogManager.getLogger().info("Next: ${x.ns}")
                 cancelPending(x.ns)
                 break
             }
+        }
         super.mouseClicked(mouseX, mouseY, button)
     }
 

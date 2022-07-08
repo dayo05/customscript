@@ -72,10 +72,10 @@ class Option(bkey: String, bvalue: String) {
     }
 
     private val String.encodeOption
-        get() = this.replace("\\", "\\\\").replace("\n", "\\n").replace(">", "\\>")
+        get() = this.replace("\r", "").replace("\\", "\\\\").replace("\n", "\\n").replace(">", "\\>")
 
     private val String.decodeOption
-        get() = this.replace("\\>", ">").replace("\\n", "\n").replace("\\\\", "\\")
+        get() = this.replace("\r", "").replace("\\>", ">").replace("\\n", "\n").replace("\\\\", "\\")
 
     operator fun get(x: String) = subOptions.filter{ it.key == x }
 

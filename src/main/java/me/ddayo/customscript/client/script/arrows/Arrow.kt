@@ -3,6 +3,7 @@ package me.ddayo.customscript.client.script.arrows
 import me.ddayo.customscript.client.script.ScriptGui
 import me.ddayo.customscript.util.options.Option
 import me.ddayo.customscript.util.options.Option.Companion.string
+import org.apache.logging.log4j.LogManager
 import org.lwjgl.glfw.GLFW
 
 class Arrow: ArrowBase() {
@@ -25,7 +26,7 @@ class Arrow: ArrowBase() {
         return keyCode == key[0].code
     }
 
-    override fun onMouseInput(gui: ScriptGui, mouseX: Double, mouseY: Double, mouseButton: Int) = when (key[0]) {
+    override fun onMouseInput(gui: ScriptGui, mouseX: Double, mouseY: Double, mouseButton: Int) = when (mouse) {
         'p' -> false
         '0' -> {
             if(mouseButton != GLFW.GLFW_MOUSE_BUTTON_LEFT) false

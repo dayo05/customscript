@@ -2,7 +2,6 @@ package me.ddayo.customscript.client.script
 
 import com.mojang.blaze3d.matrix.MatrixStack
 import me.ddayo.customscript.CustomScript
-import me.ddayo.customscript.StringUtil
 import me.ddayo.customscript.client.script.arrows.ArrowBase
 import me.ddayo.customscript.client.script.blocks.BeginBlock
 import me.ddayo.customscript.client.script.blocks.BlockBase
@@ -14,8 +13,6 @@ import me.ddayo.customscript.client.gui.RenderUtil
 import me.ddayo.customscript.util.options.CompileError
 import me.ddayo.customscript.util.options.Option
 import net.minecraft.client.Minecraft
-import org.apache.logging.log4j.LogManager
-import org.lwjgl.glfw.GLFW
 import java.io.File
 
 
@@ -120,15 +117,13 @@ class ScriptGui(scriptFile: String, beginPos: String): GuiBase() {
         return super.keyReleased(keyCode, scanCode, modifiers)
     }
 
-    private val String.decodeString: String
-        get() {
-            val opt = this
-            for (x in StringUtil.iterate())
-                opt.replace("{${x.key}}", "{${x.value}}")
-            return opt
-        }
+
 
     private val bgi = emptyList<String>().toMutableList()
     fun appendBackground(image: String) = bgi.add(image)
     fun clearBackground() = bgi.clear()
+
+    companion object {
+
+    }
 }

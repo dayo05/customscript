@@ -34,8 +34,8 @@ open class TextBlock: PendingBlock(), IRenderable {
             Minecraft.getInstance().fontRenderer.drawString(
                 MatrixStack(),
                 text,
-                textX.toFloat(),
-                textY.toFloat(),
+                (textX / textScale).toFloat(),
+                (textY / textScale).toFloat(),
                 0xffffff
             )
         }

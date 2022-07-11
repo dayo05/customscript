@@ -3,7 +3,6 @@ package me.ddayo.customscript
 import me.ddayo.customscript.CustomScript.MOD_ID
 import me.ddayo.customscript.commands.CommandHandler
 import me.ddayo.customscript.network.OpenScriptNetworkHandler
-import me.ddayo.customscript.network.StringDataNetworkHandler
 import net.minecraft.util.ResourceLocation
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent
@@ -40,11 +39,6 @@ class CustomScriptMod {
             { CustomScript.VERSION },
             CustomScript.VERSION::equals,
             CustomScript.VERSION::equals
-        )
-        CustomScript.network.registerMessage(
-            10, StringDataNetworkHandler::class.java,
-            StringDataNetworkHandler::encode, StringDataNetworkHandler.Companion::decode,
-            StringDataNetworkHandler.Companion::onMessageReceived
         )
         CustomScript.network.registerMessage(
             11, OpenScriptNetworkHandler::class.java,

@@ -51,11 +51,11 @@ class ButtonBlock: MultiSelectableBlock(), IRenderable {
         RenderUtil.push {
             GL21.glScaled(textScale, textScale, textScale)
             Minecraft.getInstance().fontRenderer.drawString(
-                MatrixStack(),
-                text,
-                textX.toFloat(),
-                textY.toFloat(),
-                0xffffff
+                    MatrixStack(),
+                    text,
+                    (textX / textScale).toFloat(),
+                    (textY / textScale).toFloat(),
+                    0xffffff
             )
         }
     }

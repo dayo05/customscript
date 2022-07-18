@@ -21,19 +21,19 @@ abstract class BlockBase {
             registerBlock("TextBlock", "TextContext", TextBlock::class.java)
             registerBlock("ButtonBlock", "ButtonContext", ButtonBlock::class.java)
             registerBlock("ChangeBackground", "ChangeBackgroundContext", ChangeBackgroundBlock::class.java)
+            registerBlock("RunCommandBlock", "RunCommandContext", RunCommandBlock::class.java)
         }
 
         fun createBlock(name: String, opt: Option, base: ScriptGui): BlockBase {
             if(!blocks.containsKey(name))
                 throw CompileError("Not supported block: $name")
-            val block = blocks[name]!!.second.constructors.first().newInstance() as BlockBase
-            block.base = base
-            if(opt["Context"].string != blocks[name]!!.first) throw IllegalArgumentException("Context type ${opt["Context"].first()} and declared context type ${blocks[name]!!.first} are different")
-            block.ns = opt["NS"].int
-            block.parseContext(opt["Context"].first())
-            return block
+            return (blocks[name]!!.second.constructors.first().newInstance() as BlockBase).apply {
+                this.base = base
+                if (opt["Context"].string != blocks[name]!!.first) throw IllegalArgumentException("Context type ${opt["Context"].first()} and declared context type ${blocks[name]!!.first} are different")
+                this.ns = opt["NS"].int
+                this.parseContext(opt["Context"].first())
+            }
         }
-
     }
 
     protected lateinit var base: ScriptGui

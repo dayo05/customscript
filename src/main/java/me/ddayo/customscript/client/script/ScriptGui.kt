@@ -121,6 +121,7 @@ class ScriptGui(scriptFile: String, beginPos: String): GuiBase() {
 
     private val bgi = emptyList<String>().toMutableList()
     fun appendBackground(image: String) = bgi.add(image)
+    fun popBackground() = bgi.removeLast()
     fun clearBackground() = bgi.clear()
 
     companion object {

@@ -3,6 +3,7 @@ package me.ddayo.customscript
 import me.ddayo.customscript.CustomScript.MOD_ID
 import me.ddayo.customscript.commands.CommandHandler
 import me.ddayo.customscript.network.OpenScriptNetworkHandler
+import me.ddayo.customscript.network.ServerSideCommandNetworkHandler
 import net.minecraft.util.ResourceLocation
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent
@@ -35,15 +36,20 @@ class CustomScriptMod {
         CustomScript.isTest = false
 
         CustomScript.network = NetworkRegistry.newSimpleChannel(
-            ResourceLocation(MOD_ID, "networkchannel"),
-            { CustomScript.VERSION },
-            CustomScript.VERSION::equals,
-            CustomScript.VERSION::equals
+                ResourceLocation(MOD_ID, "networkchannel"),
+                { CustomScript.VERSION },
+                CustomScript.VERSION::equals,
+                CustomScript.VERSION::equals
         )
         CustomScript.network.registerMessage(
-            11, OpenScriptNetworkHandler::class.java,
-            OpenScriptNetworkHandler::encode, OpenScriptNetworkHandler.Companion::decode,
-            OpenScriptNetworkHandler.Companion::onMessageReceived, Optional.of(NetworkDirection.PLAY_TO_CLIENT)
+                11, OpenScriptNetworkHandler::class.java,
+                OpenScriptNetworkHandler::encode, OpenScriptNetworkHandler.Companion::decode,
+                OpenScriptNetworkHandler.Companion::onMessageReceived, Optional.of(NetworkDirection.PLAY_TO_CLIENT)
+        )
+        CustomScript.network.registerMessage(
+                12, ServerSideCommandNetworkHandler::class.java,
+                ServerSideCommandNetworkHandler::encode, ServerSideCommandNetworkHandler.Companion::decode,
+                ServerSideCommandNetworkHandler.Companion::onMessageReceived, Optional.of(NetworkDirection.PLAY_TO_SERVER)
         )
     }
 }

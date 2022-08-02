@@ -1,6 +1,6 @@
-package me.ddayo.customscript.client.script.arrows
+package me.ddayo.customscript.client.gui.script.arrows
 
-import me.ddayo.customscript.client.script.ScriptGui
+import me.ddayo.customscript.client.gui.script.ScriptGui
 import me.ddayo.customscript.util.options.Option
 import me.ddayo.customscript.util.options.Option.Companion.int
 import me.ddayo.customscript.util.options.Option.Companion.string
@@ -30,8 +30,8 @@ abstract class ArrowBase {
         private set
 
     open fun parseContext(context: Option) {
-        from = context["From"].int
-        to = context["To"].int
+        from = context["From"].int!!
+        to = context["To"].int!!
     }
 
     open fun onKeyboardInput(gui: ScriptGui, keyCode: Int, scanCode: Int, modifier: Int) = true

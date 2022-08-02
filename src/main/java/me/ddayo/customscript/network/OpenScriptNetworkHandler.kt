@@ -1,6 +1,6 @@
 package me.ddayo.customscript.network
 
-import me.ddayo.customscript.client.script.ScriptGui
+import me.ddayo.customscript.client.gui.script.ScriptGui
 import net.minecraft.client.Minecraft
 import net.minecraft.network.PacketBuffer
 import net.minecraftforge.fml.network.NetworkEvent
@@ -22,8 +22,6 @@ class OpenScriptNetworkHandler() {
     }
 
     companion object {
-        private val logger = LogManager.getLogger()
-
         fun onMessageReceived(message: OpenScriptNetworkHandler, ctxSuf: Supplier<NetworkEvent.Context>) = message.run {
             val ctx = ctxSuf.get()
             ctx.packetHandled = true

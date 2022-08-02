@@ -1,6 +1,6 @@
-package me.ddayo.customscript.client.script.arrows
+package me.ddayo.customscript.client.gui.script.arrows
 
-import me.ddayo.customscript.client.script.ScriptGui
+import me.ddayo.customscript.client.gui.script.ScriptGui
 import me.ddayo.customscript.util.options.Option
 import me.ddayo.customscript.util.options.Option.Companion.string
 import org.apache.logging.log4j.LogManager
@@ -14,7 +14,7 @@ class Arrow: ArrowBase() {
 
     override fun parseContext(context: Option) {
         super.parseContext(context)
-        val a = context["Key"].string
+        val a = context["Key"].string ?: "0default"
         mouse = a[0]
         key = a.substring(1)
     }

@@ -1,5 +1,6 @@
 package me.ddayo.customscript.network
 
+import me.ddayo.customscript.server.ServerConfiguration
 import net.minecraft.network.PacketBuffer
 import net.minecraftforge.fml.network.NetworkEvent
 import net.minecraftforge.fml.server.ServerLifecycleHooks
@@ -17,7 +18,9 @@ class ServerSideCommandNetworkHandler() {
             val ctx = ctxSuf.get()
             ctx.packetHandled = true
             ctx.enqueueWork {
-               ServerLifecycleHooks.getCurrentServer().commandManager.handleCommand(ServerLifecycleHooks.getCurrentServer().commandSource, message.command)
+                if(ServerConfiguration.allowServerSideCommand)
+                    ServerLifecycleHooks.getCurrentServer().commandManager.handleCommand(ServerLifecycleHooks.getCurrentServer().commandSource, message.command)
+                else ctx.sender?.disconnect()
             }
         }
 

@@ -7,6 +7,7 @@ import net.minecraft.util.ResourceLocation
 import org.lwjgl.opengl.GL21
 import org.lwjgl.stb.STBImage
 import java.io.File
+import java.nio.ByteBuffer
 
 object RenderUtil {
     private fun bindTexture(tex: String) = Minecraft.getInstance().textureManager.bindTexture(ResourceLocation(CustomScript.MOD_ID, "textures/$tex"))
@@ -60,6 +61,19 @@ object RenderUtil {
         GL21.glBindTexture(GL21.GL_TEXTURE_2D, images[str]!!)
     }
 
+    fun bindGrayscaleBuffer(buf: ByteBuffer, width: Int, height: Int): Int {
+        val tex = GL21.glGenTextures()
+        useTexture(tex) {
+            GL21.glTexParameteri(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_WRAP_S, GL21.GL_CLAMP_TO_EDGE)
+            GL21.glTexParameteri(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_WRAP_T, GL21.GL_CLAMP_TO_EDGE)
+            GL21.glTexParameteri(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MIN_FILTER, GL21.GL_LINEAR)
+            GL21.glTexParameteri(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAG_FILTER, GL21.GL_LINEAR)
+
+            GL21.glTexImage2D(GL21.GL_TEXTURE_2D, 0, GL21.GL_LUMINANCE, width, height, 0, GL21.GL_RGBA, GL21.GL_UNSIGNED_BYTE, buf)
+        }
+        return tex
+    }
+
     fun resourceExists(tex: String) = Minecraft.getInstance().resourceManager.hasResource(ResourceLocation(CustomScript.MOD_ID, tex))
     fun extResourceExists(tex: String) = File(Minecraft.getInstance().gameDir, "assets/images/$tex").exists()
 
@@ -97,8 +111,6 @@ object RenderUtil {
             x()
         }
     }
-
-    private fun finalize() = removeAllTextures()
 
     fun removeAllTextures() {
         GL21.glDeleteTextures(images.values.toIntArray())

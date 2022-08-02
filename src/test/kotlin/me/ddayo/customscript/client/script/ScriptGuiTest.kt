@@ -1,5 +1,6 @@
 package me.ddayo.customscript.client.script
 
+import me.ddayo.customscript.client.gui.script.ScriptGui
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 

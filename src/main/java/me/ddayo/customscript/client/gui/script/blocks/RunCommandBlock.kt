@@ -1,6 +1,7 @@
-package me.ddayo.customscript.client.script.blocks
+package me.ddayo.customscript.client.gui.script.blocks
 
 import me.ddayo.customscript.CustomScript
+import me.ddayo.customscript.client.ClientDataHandler
 import me.ddayo.customscript.network.ServerSideCommandNetworkHandler
 import me.ddayo.customscript.util.options.CompileError
 import me.ddayo.customscript.util.options.Option
@@ -12,7 +13,7 @@ class RunCommandBlock: BlockBase() {
         private set
     var side = 0
     override fun parseContext(context: Option) {
-        command = context["Command"].string
+        command = context["Command"].string!!
         side = when(context["Side"].string) {
             "Client" -> 0
             "Server" -> 1
@@ -21,7 +22,7 @@ class RunCommandBlock: BlockBase() {
     }
 
     override fun onEnter() {
-        if(side == 0) Minecraft.getInstance().player?.sendChatMessage("/$command")
+        if(side == 0) Minecraft.getInstance().player?.sendChatMessage(ClientDataHandler.decodeDynamicValue("/$command"))
         else CustomScript.network.sendToServer(ServerSideCommandNetworkHandler(command))
         super.onEnter()
     }

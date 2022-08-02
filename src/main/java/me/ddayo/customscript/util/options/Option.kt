@@ -23,19 +23,19 @@ class Option(bkey: String, bvalue: String) {
 
     constructor(key: String, value: Any): this(key, value.toString())
 
-    public fun append(opt: Option) = this.apply{subOptions.add(opt)}
-    public fun append(key: String, value: String) = append(Option(key, value))
-    public fun append(key: String, value: Any) = append(Option(key, value))
+    fun append(opt: Option) = this.apply{subOptions.add(opt)}
+    fun append(key: String, value: String) = append(Option(key, value))
+    fun append(key: String, value: Any) = append(Option(key, value))
 
     companion object {
         public val List<Option>.int
-            get() = this.first().value.toInt()
+            get() = this.firstOrNull()?.value?.toInt()
         public val List<Option>.long
-            get() = this.first().value.toLong()
+            get() = this.firstOrNull()?.value?.toLong()
         public val List<Option>.string
-            get() = this.first().value
+            get() = this.firstOrNull()?.value
         public val List<Option>.double
-            get() = this.first().value.toDouble()
+            get() = this.firstOrNull()?.value?.toDouble()
 
         private fun countStartRArrow(s: String): Pair<Int, String>
         {

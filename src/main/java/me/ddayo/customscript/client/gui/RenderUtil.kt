@@ -68,8 +68,9 @@ object RenderUtil {
             GL21.glTexParameteri(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_WRAP_T, GL21.GL_CLAMP_TO_EDGE)
             GL21.glTexParameteri(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MIN_FILTER, GL21.GL_LINEAR)
             GL21.glTexParameteri(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAG_FILTER, GL21.GL_LINEAR)
+            GL21.glPixelStorei(GL21.GL_UNPACK_ALIGNMENT, 1)
 
-            GL21.glTexImage2D(GL21.GL_TEXTURE_2D, 0, GL21.GL_LUMINANCE, width, height, 0, GL21.GL_RGBA, GL21.GL_UNSIGNED_BYTE, buf)
+            GL21.glTexImage2D(GL21.GL_TEXTURE_2D, 0, GL21.GL_ALPHA, width, height, 0, GL21.GL_ALPHA, GL21.GL_UNSIGNED_BYTE, buf)
         }
         return tex
     }
@@ -81,15 +82,17 @@ object RenderUtil {
 
     fun render(x: Int, y: Int, w: Int, h: Int) = render(x.toDouble(), y.toDouble(), w.toDouble(), h.toDouble())
 
-    fun render(x: Double, y: Double, w: Double, h: Double) {
+    fun render(x: Double, y: Double, w: Double, h: Double) = render(x, y, w, h, 0.0, 1.0, 0.0, 1.0)
+
+    fun render(x: Double, y: Double, w: Double, h: Double, th1: Double, th2: Double, tv1: Double, tv2: Double) {
         GL21.glBegin(GL21.GL_QUADS)
-        GL21.glTexCoord2d(1.0, 0.0)
+        GL21.glTexCoord2d(th2, tv1)
         GL21.glVertex2d(x + w, y)
-        GL21.glTexCoord2d(0.0, 0.0)
+        GL21.glTexCoord2d(th1, tv1)
         GL21.glVertex2d(x, y)
-        GL21.glTexCoord2d(0.0, 1.0)
+        GL21.glTexCoord2d(th1, tv2)
         GL21.glVertex2d(x, y + h)
-        GL21.glTexCoord2d(1.0, 1.0)
+        GL21.glTexCoord2d(th2, tv2)
         GL21.glVertex2d(x + w, y + h)
         GL21.glEnd()
     }

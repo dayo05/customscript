@@ -42,8 +42,8 @@ class ButtonBlock: MultiSelectableBlock(), IRendererBlock {
         base.appendRenderer(this)
     }
 
-    override val renderParse: RenderParse
-        get() = RenderParse.Main
+    override val renderParse: ScriptGui.RenderParse
+        get() = base.Main
 
     override fun validateKeyInput(gui: ScriptGui, keyCode: Int, scanCode: Int, modifier: Int) = PendingResult.Pass
 

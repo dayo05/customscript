@@ -2,12 +2,14 @@ package me.ddayo.customscript.server
 
 import me.ddayo.customscript.CustomScript
 import me.ddayo.customscript.network.UpdateValueNetworkHandler
+import me.ddayo.customscript.util.options.Option
 import net.minecraft.command.CommandSource
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.entity.player.ServerPlayerEntity
 import net.minecraft.util.text.StringTextComponent
 import net.minecraftforge.fml.network.NetworkDirection
 import net.minecraftforge.fml.server.ServerLifecycleHooks
+import java.io.File
 import java.util.UUID
 import kotlin.math.pow
 import kotlin.math.sqrt
@@ -43,5 +45,41 @@ object ServerDataHandler {
             if (pl != null)
                 CustomScript.network.sendTo(UpdateValueNetworkHandler(name, value), pl.connection.networkManager, NetworkDirection.PLAY_TO_CLIENT)
         }
+    }
+
+    fun saveData() {
+        File("csData.dat").writeText(
+            listOf(
+                *dynamicData.keys.map { k ->
+                    Option("dynamicData", k).apply {
+                        dynamicData[k]!!.forEach {
+                            append(it.key, it.value)
+                        }
+                    }.str()
+                }.toTypedArray(),
+                Option("internalData", "").apply {
+                    internalData.forEach { append(it.key, it.value) }
+                }.str()
+            ).joinToString("")
+        )
+    }
+
+    fun loadData() {
+        dynamicData.clear()
+        internalData.clear()
+
+        val opt = Option.readOption(File("csData.dat")
+            .run {
+                if(exists())
+                    readText()
+                else ""
+            })
+        opt["dynamicData"].onEach {
+            dynamicData[UUID.fromString(it.value)] = mutableMapOf(*it.subOptions.map { o -> Pair(o.key, o.value) }.toTypedArray())
+        }
+        internalData.putAll(opt["internalData"].run {
+            if(isEmpty()) emptyList()
+            else first().subOptions.map { Pair(it.key, it.value) }
+        })
     }
 }

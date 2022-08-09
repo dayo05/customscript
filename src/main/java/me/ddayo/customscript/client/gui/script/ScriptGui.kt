@@ -13,6 +13,14 @@ import java.io.File
 
 
 class ScriptGui(scriptFile: String, beginPos: String): GuiBase() {
+    enum class RenderParse {
+        Pre, Main, Post
+    }
+
+    public val Pre = RenderParse.Pre
+    public val Main = RenderParse.Main
+    public val Post = RenderParse.Post
+
     private val scriptFileRoot =
             if (CustomScript.isTest) File("dummy") else File(Minecraft.getInstance().gameDir, CustomScript.MOD_ID)
     private val scFile = if (CustomScript.isTest) File(scriptFile) else File(scriptFileRoot, scriptFile)
@@ -46,6 +54,7 @@ class ScriptGui(scriptFile: String, beginPos: String): GuiBase() {
 
         if (current.size > 2) {
             if (current.any { it !is MultiSelectableBlock }) throw CompileError("There are two+ non-multi-selectable blocks which is connect to current pos")
+            current.forEach { it.onEnter() }
             pending = true
         } else if (current.isEmpty()) closeScreen()
         else {

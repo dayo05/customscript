@@ -16,10 +16,12 @@ import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.event.RegisterCommandsEvent
 import net.minecraftforge.event.TickEvent.PlayerTickEvent
 import net.minecraftforge.event.entity.EntityJoinWorldEvent
+import net.minecraftforge.eventbus.api.EventPriority
 import net.minecraftforge.eventbus.api.SubscribeEvent
 import net.minecraftforge.fml.LogicalSide
 import net.minecraftforge.fml.common.Mod
 import net.minecraftforge.fml.event.server.FMLServerStartingEvent
+import net.minecraftforge.fml.event.server.FMLServerStoppingEvent
 import net.minecraftforge.fml.network.NetworkDirection
 import net.minecraftforge.fml.network.NetworkRegistry
 import net.minecraftforge.fml.network.simple.SimpleChannel
@@ -99,10 +101,15 @@ object CustomScript {
     fun serverInit(event: FMLServerStartingEvent) {
         // Initialize server configurations
         ServerConfiguration
-        ServerDataHandler
+        ServerDataHandler.loadData()
     }
 
     @SubscribeEvent
+    fun serverClose(event: FMLServerStoppingEvent) {
+        ServerDataHandler.saveData()
+    }
+
+    @SubscribeEvent(priority = EventPriority.LOWEST)
     fun registerCommandEvent(event: RegisterCommandsEvent)
         = CommandHandler.register(event.dispatcher)
 

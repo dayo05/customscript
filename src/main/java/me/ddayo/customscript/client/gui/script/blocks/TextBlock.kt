@@ -6,6 +6,7 @@ import me.ddayo.customscript.client.gui.RenderUtil
 import me.ddayo.customscript.client.gui.font.Font
 import me.ddayo.customscript.client.gui.font.FontManager
 import me.ddayo.customscript.client.gui.font.FontedText
+import me.ddayo.customscript.client.gui.script.ScriptGui
 import me.ddayo.customscript.util.options.Option
 import me.ddayo.customscript.util.options.Option.Companion.double
 import me.ddayo.customscript.util.options.Option.Companion.string
@@ -33,7 +34,7 @@ open class TextBlock: BlockBase(), IRendererBlock {
         if(textFont != "") {
             val fontInfo = FontManager.getFont(textFont)
             fontedText = FontedText(fontInfo, text)
-            fontedText.calculateBuffer(1920, textScale.toInt())
+            fontedText.calculateBuffer(textScale.toInt())
             fontedText.bindBuf()
         }
     }
@@ -55,12 +56,10 @@ open class TextBlock: BlockBase(), IRendererBlock {
                         0xffffff
                 )
             }
-            else fontedText.useBuf {
-                    RenderUtil.render(textX, textY, 1920.0, textScale)
-                }
+            else fontedText.render(textX, textY, 12.0)
         }
     }
 
-    override val renderParse: RenderParse
-        get() = RenderParse.Post
+    override val renderParse: ScriptGui.RenderParse
+        get() = base.Post
 }

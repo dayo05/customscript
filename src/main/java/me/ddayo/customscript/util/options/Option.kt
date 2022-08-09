@@ -23,7 +23,7 @@ class Option(bkey: String, bvalue: String) {
 
     constructor(key: String, value: Any): this(key, value.toString())
 
-    fun append(opt: Option) = this.apply{subOptions.add(opt)}
+    fun append(opt: Option) = this.apply{ subOptions.add(opt) }
     fun append(key: String, value: String) = append(Option(key, value))
     fun append(key: String, value: Any) = append(Option(key, value))
 

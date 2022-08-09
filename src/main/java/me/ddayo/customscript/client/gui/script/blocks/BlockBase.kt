@@ -19,7 +19,7 @@ abstract class BlockBase {
             registerBlock("BeginBlock", "BeginBlockContext", BeginBlock::class.java)
             registerBlock("TextBlock", "TextContext", TextBlock::class.java)
             registerBlock("ButtonBlock", "ButtonContext", ButtonBlock::class.java)
-            registerBlock("ChangeBackground", "ChangeBackgroundContext", ChangeBackgroundBlock::class.java)
+            registerBlock("ChangeBackgroundBlock", "ChangeBackgroundContext", ChangeBackgroundBlock::class.java)
             registerBlock("RunCommandBlock", "RunCommandContext", RunCommandBlock::class.java)
             registerBlock("DelayBlock", "DelayContext", DelayBlock::class.java)
         }

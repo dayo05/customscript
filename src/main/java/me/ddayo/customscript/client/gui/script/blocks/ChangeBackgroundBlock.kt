@@ -2,6 +2,7 @@ package me.ddayo.customscript.client.gui.script.blocks
 
 import me.ddayo.customscript.client.ClientDataHandler
 import me.ddayo.customscript.client.gui.RenderUtil
+import me.ddayo.customscript.client.gui.script.ScriptGui
 import me.ddayo.customscript.util.options.CompileError
 import me.ddayo.customscript.util.options.Option
 import me.ddayo.customscript.util.options.Option.Companion.string
@@ -29,12 +30,12 @@ class ChangeBackgroundBlock: BlockBase() {
                         }
                     }
 
-                    override val renderParse: RenderParse
-                        get() = RenderParse.Pre
+                    override val renderParse: ScriptGui.RenderParse
+                        get() = base.Pre
                 })
             }
             1 -> {
-                base.clearRenderer(RenderParse.Pre)
+                base.clearRenderer(base.Pre)
                 image.split("\n").forEach {
                     base.appendRenderer(object : IRendererBlock {
                         override fun render() {
@@ -43,12 +44,12 @@ class ChangeBackgroundBlock: BlockBase() {
                             }
                         }
 
-                        override val renderParse: RenderParse
-                            get() = RenderParse.Pre
+                        override val renderParse: ScriptGui.RenderParse
+                            get() = base.Pre
                     })
                 }
             }
-            2 -> base.popRenderer(RenderParse.Pre)
+            2 -> base.popRenderer(base.Pre)
         }
     }
 }

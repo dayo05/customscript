@@ -31,6 +31,7 @@ class ButtonBlock: MultiSelectableBlock(), IRendererBlock {
     }
 
     override fun render() {
+        Minecraft.getInstance().fontRenderer
         RenderUtil.push {
             RenderUtil.useExtTexture(ClientDataHandler.decodeDynamicValue(buttonImage)) {
                 RenderUtil.render(buttonX, buttonY, buttonWidth, buttonHeight)

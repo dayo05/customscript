@@ -31,10 +31,10 @@ class FontedText(private val font: Font, private val text: String) {
     fun render(textX: Double, textY: Double, cutoff: Double = 0.0) {
         useBuf {
             //FontManager.useFontShader {
-            GL21.glColor3d(1.0, 1.0, 1.0)
             GL21.glEnable(GL21.GL_TEXTURE_2D)
             GL21.glEnable(GL21.GL_BLEND)
-            GL21.glBlendFunc(GL21.GL_SRC_ALPHA, GL21.GL_ONE_MINUS_SRC_ALPHA);
+            GL21.glColor3d(1.0, 1.0, 1.0)
+            GL21.glBlendFunc(GL21.GL_SRC_ALPHA, GL21.GL_ONE_MINUS_SRC_ALPHA)
             RenderUtil.render(textX, textY, width.toDouble(), height.toDouble(), 0.0, 1.0, 0.0, 1.0 - cutoff/* - font.lineGap * font.getScale(height) / height*/)
             //}
         }

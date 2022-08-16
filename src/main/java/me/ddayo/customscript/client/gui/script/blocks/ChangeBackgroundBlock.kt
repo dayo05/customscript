@@ -25,8 +25,11 @@ class ChangeBackgroundBlock: BlockBase() {
             0 -> image.split("\n").forEach {
                 base.appendRenderer(object: IRendererBlock {
                     override fun render() {
-                        RenderUtil.useExtTexture(ClientDataHandler.decodeDynamicValue(it)) {
-                            RenderUtil.render()
+                        ClientDataHandler.decodeDynamicValue(it).run {
+                            if (this != "null")
+                                RenderUtil.useExtTexture(this) {
+                                    RenderUtil.render()
+                                }
                         }
                     }
 
@@ -39,8 +42,11 @@ class ChangeBackgroundBlock: BlockBase() {
                 image.split("\n").forEach {
                     base.appendRenderer(object : IRendererBlock {
                         override fun render() {
-                            RenderUtil.useExtTexture(ClientDataHandler.decodeDynamicValue(it)) {
-                                RenderUtil.render()
+                            ClientDataHandler.decodeDynamicValue(it).run {
+                                if (this != "null")
+                                    RenderUtil.useExtTexture(this) {
+                                        RenderUtil.render()
+                                    }
                             }
                         }
 

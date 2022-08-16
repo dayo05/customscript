@@ -120,5 +120,8 @@ object RenderUtil {
         images.clear()
     }
 
-    fun removeTexture(tex: String) = GL21.glDeleteTextures(images[tex]!!)
+    fun removeTexture(tex: String){
+        GL21.glDeleteTextures(images[tex]!!)
+        images.remove(tex)
+    }
 }

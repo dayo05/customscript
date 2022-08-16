@@ -56,7 +56,7 @@ open class TextBlock: BlockBase(), IRendererBlock {
                         0xffffff
                 )
             }
-            else fontedText.render(textX, textY, 12.0)
+            else fontedText.render(textX, textY, 0.0)
         }
     }
 

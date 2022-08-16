@@ -25,7 +25,6 @@ import net.minecraftforge.fml.event.server.FMLServerStoppingEvent
 import net.minecraftforge.fml.network.NetworkDirection
 import net.minecraftforge.fml.network.NetworkRegistry
 import net.minecraftforge.fml.network.simple.SimpleChannel
-import org.apache.logging.log4j.LogManager
 import java.util.*
 
 @Mod(MOD_ID)

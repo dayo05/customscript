@@ -1,6 +1,5 @@
 package me.ddayo.customscript.network
 
-import me.ddayo.customscript.client.gui.RenderUtil
 import net.minecraft.client.Minecraft
 import net.minecraft.network.PacketBuffer
 import net.minecraftforge.fml.network.NetworkEvent

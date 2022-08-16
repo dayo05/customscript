@@ -2,9 +2,7 @@ package me.ddayo.customscript.client.gui
 
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.screen.Screen
-import net.minecraft.client.util.InputMappings
 import net.minecraft.util.text.StringTextComponent
-import org.lwjgl.glfw.GLFW
 
 open class GuiBase: Screen(StringTextComponent.EMPTY) {
     protected fun render() = RenderUtil.render()

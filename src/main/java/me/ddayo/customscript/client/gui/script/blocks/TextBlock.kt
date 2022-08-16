@@ -3,7 +3,6 @@ package me.ddayo.customscript.client.gui.script.blocks
 import com.mojang.blaze3d.matrix.MatrixStack
 import me.ddayo.customscript.client.ClientDataHandler
 import me.ddayo.customscript.client.gui.RenderUtil
-import me.ddayo.customscript.client.gui.font.Font
 import me.ddayo.customscript.client.gui.font.FontManager
 import me.ddayo.customscript.client.gui.font.FontedText
 import me.ddayo.customscript.client.gui.script.ScriptGui
@@ -56,7 +55,7 @@ open class TextBlock: BlockBase(), IRendererBlock {
                         0xffffff
                 )
             }
-            else fontedText.render(textX, textY, 0.0)
+            else fontedText.render(textX, textY)
         }
     }
 

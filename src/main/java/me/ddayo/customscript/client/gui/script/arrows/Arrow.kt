@@ -3,7 +3,6 @@ package me.ddayo.customscript.client.gui.script.arrows
 import me.ddayo.customscript.client.gui.script.ScriptGui
 import me.ddayo.customscript.util.options.Option
 import me.ddayo.customscript.util.options.Option.Companion.string
-import org.apache.logging.log4j.LogManager
 import org.lwjgl.glfw.GLFW
 
 class Arrow: ArrowBase() {

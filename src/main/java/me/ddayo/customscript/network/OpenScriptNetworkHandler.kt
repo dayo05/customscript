@@ -4,7 +4,6 @@ import me.ddayo.customscript.client.gui.script.ScriptGui
 import net.minecraft.client.Minecraft
 import net.minecraft.network.PacketBuffer
 import net.minecraftforge.fml.network.NetworkEvent
-import org.apache.logging.log4j.LogManager
 import java.util.function.Supplier
 
 class OpenScriptNetworkHandler() {

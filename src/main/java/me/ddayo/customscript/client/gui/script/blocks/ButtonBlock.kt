@@ -1,6 +1,5 @@
 package me.ddayo.customscript.client.gui.script.blocks
 
-import com.mojang.blaze3d.matrix.MatrixStack
 import me.ddayo.customscript.client.ClientDataHandler
 import me.ddayo.customscript.client.gui.RenderUtil
 import me.ddayo.customscript.client.gui.script.ScriptGui
@@ -8,7 +7,6 @@ import me.ddayo.customscript.util.options.Option
 import me.ddayo.customscript.util.options.Option.Companion.double
 import me.ddayo.customscript.util.options.Option.Companion.string
 import net.minecraft.client.Minecraft
-import org.lwjgl.opengl.GL21
 
 class ButtonBlock: MultiSelectableBlock(), IRendererBlock {
     var buttonX = 0.0

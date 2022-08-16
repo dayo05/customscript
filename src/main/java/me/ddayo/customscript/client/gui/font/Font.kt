@@ -1,8 +1,6 @@
 package me.ddayo.customscript.client.gui.font
 
-import org.apache.logging.log4j.LogManager
 import org.lwjgl.BufferUtils
-import org.lwjgl.stb.STBTTBakedChar
 import org.lwjgl.stb.STBTTFontinfo
 import org.lwjgl.stb.STBTruetype
 import java.io.File

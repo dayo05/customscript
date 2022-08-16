@@ -4,7 +4,6 @@ import me.ddayo.customscript.client.gui.script.ScriptGui
 import me.ddayo.customscript.util.options.CompileError
 import me.ddayo.customscript.util.options.Option
 import me.ddayo.customscript.util.options.Option.Companion.double
-import me.ddayo.customscript.util.options.Option.Companion.long
 import me.ddayo.customscript.util.options.Option.Companion.string
 
 class DelayBlock: PendingBlock() {

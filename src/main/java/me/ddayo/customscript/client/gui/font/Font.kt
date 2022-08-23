@@ -16,8 +16,11 @@ class Font(ttfFile: String) {
         byteBuf.flip()
     }
 
-    private val fontInfo = STBTTFontinfo.create()
-    init {
+    private lateinit var fontInfo: STBTTFontinfo
+    init { allocate() }
+
+    fun allocate() {
+        fontInfo = STBTTFontinfo.create()
         STBTruetype.stbtt_InitFont(fontInfo, byteBuf)
     }
 
@@ -32,9 +35,13 @@ class Font(ttfFile: String) {
     public val lineGap: Int
         get() = this._lineGap[0]
 
-    public fun getScale(height: Int) = STBTruetype.stbtt_ScaleForPixelHeight(fontInfo, height.toFloat())
+    public fun getScale(height: Int): Float {
+        if(!isAllocated) throw IllegalStateException("Font is not allocated")
+        return STBTruetype.stbtt_ScaleForPixelHeight(fontInfo, height.toFloat())
+    }
 
     fun calculateWidth(text: String, height: Int): Int {
+        if(!isAllocated) throw IllegalStateException("Font is not allocated")
         val scale = STBTruetype.stbtt_ScaleForPixelHeight(fontInfo, height.toFloat())
 
         var x = 0
@@ -52,6 +59,7 @@ class Font(ttfFile: String) {
     }
 
     fun getBitmap(text: String, height: Int): ByteBuffer {
+        if(!isAllocated) throw IllegalStateException("Font is not allocated")
         val width = calculateWidth(text, height)
         STBTruetype.stbtt_GetFontVMetrics(fontInfo, _ascent, _descent, _lineGap)
 
@@ -78,22 +86,20 @@ class Font(ttfFile: String) {
             buf.position(x + (lsb[0] * scale).roundToInt() + (y * width))
             STBTruetype.stbtt_MakeCodepointBitmap(fontInfo, buf, c_x2[0] - c_x1[0], c_y2[0] - c_y1[0], width, scale, scale, k.value.code)
 
-            x += if(k.index != text.length - 1)
-                (ax[0] * scale).roundToInt() + (STBTruetype.stbtt_GetCodepointKernAdvance(fontInfo, k.value.code, text[k.index + 1].code) * scale).roundToInt()
-            else (ax[0] * scale).roundToInt() + (STBTruetype.stbtt_GetCodepointKernAdvance(fontInfo, k.value.code, 0) * scale).roundToInt()
+            if(k.index != text.length - 1)
+                x += (ax[0] * scale).roundToInt() + (STBTruetype.stbtt_GetCodepointKernAdvance(fontInfo, k.value.code, text[k.index + 1].code) * scale).roundToInt()
         }
-/*
-        var ix = 0
-        for(a in 0 until height)
-            LogManager.getLogger().info(run {
-                var kk = ""
-                for(y in 0 until width) kk += if(buf[ix++].toInt() == 0) " " else "0"
-                kk
-            })
- */
         buf.flip()
+
         return buf
     }
 
     private fun createIntArray() = arrayOf(0).toIntArray()
+
+    public var isAllocated = true
+        private set
+    public fun free() {
+        isAllocated = false
+        fontInfo.free()
+    }
 }

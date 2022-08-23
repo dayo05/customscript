@@ -4,6 +4,7 @@ import com.mojang.blaze3d.matrix.MatrixStack
 import me.ddayo.customscript.CustomScript
 import me.ddayo.customscript.client.gui.script.arrows.ArrowBase
 import me.ddayo.customscript.client.gui.GuiBase
+import me.ddayo.customscript.client.gui.RenderUtil
 import me.ddayo.customscript.client.gui.script.blocks.*
 import me.ddayo.customscript.network.CloseGuiNetworkHandler
 import me.ddayo.customscript.util.options.CompileError
@@ -164,10 +165,16 @@ class ScriptGui(scriptFile: String, beginPos: String): GuiBase() {
     }
 
     override fun onClose() {
+        close()
+        CustomScript.network.sendToServer(CloseGuiNetworkHandler())
+        super.onClose()
+    }
+
+    //Used by closing HUD
+    fun close() {
         RenderParse.values().forEach {
             clearRenderer(it)
         }
-        CustomScript.network.sendToServer(CloseGuiNetworkHandler())
-        super.onClose()
+        //RenderUtil.removeAllTextures()
     }
 }

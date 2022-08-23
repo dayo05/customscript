@@ -1,12 +1,15 @@
 package me.ddayo.customscript.client.gui
 
+import com.mojang.blaze3d.systems.RenderSystem
 import me.ddayo.customscript.CustomScript
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.screen.Screen
 import net.minecraft.util.ResourceLocation
+import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL21
 import org.lwjgl.stb.STBImage
 import java.io.File
+import java.net.URL
 import java.nio.ByteBuffer
 
 object RenderUtil {
@@ -22,6 +25,8 @@ object RenderUtil {
         iab = false
     }
 
+    private fun bindLoadingTexture() = bindTexture("loading.png")
+
     fun useTexture(tex: Int, x: () -> Unit) {
         GL21.glBindTexture(GL21.GL_TEXTURE_2D, tex)
         withValidate(x)
@@ -29,7 +34,9 @@ object RenderUtil {
     }
 
     fun useExtTexture(str: String, x: () -> Unit) {
-        bindExtTexture("assets/images/$str")
+        if(str.startsWith("https://") || str.startsWith("http://"))
+            bindUrlTexture(str)
+        else bindExtTexture("assets/images/$str")
         withValidate(x)
         GL21.glBindTexture(GL21.GL_TEXTURE_2D, 0)
     }
@@ -41,24 +48,105 @@ object RenderUtil {
 
     private fun bindExtTexture(str: String) {
         if(!images.containsKey(str)) {
-            val tex = GL21.glGenTextures()
-            useTexture(tex) {
-                GL21.glTexParameteri(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_WRAP_S, GL21.GL_CLAMP_TO_EDGE)
-                GL21.glTexParameteri(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_WRAP_T, GL21.GL_CLAMP_TO_EDGE)
-                GL21.glTexParameteri(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MIN_FILTER, GL21.GL_LINEAR)
-                GL21.glTexParameteri(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAG_FILTER, GL21.GL_LINEAR)
-
+            images[str] = -1
+            Thread {
                 val x = IntArray(1)
                 val y = IntArray(1)
                 val c = IntArray(1)
                 val img = STBImage.stbi_load(str, x, y, c, 0)
-                if (c[0] == 4)
-                    GL21.glTexImage2D(GL21.GL_TEXTURE_2D, 0, GL21.GL_RGBA, x[0], y[0], 0, GL21.GL_RGBA, GL21.GL_UNSIGNED_BYTE, img)
-                else GL21.glTexImage2D(GL21.GL_TEXTURE_2D, 0, GL21.GL_RGB, x[0], y[0], 0, GL21.GL_RGB, GL21.GL_UNSIGNED_BYTE, img)
-                images[str] = tex
-            }
+
+                RenderSystem.recordRenderCall {
+                    val tex = GL21.glGenTextures()
+                    useTexture(tex) {
+                        GL21.glTexParameteri(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_WRAP_S, GL21.GL_CLAMP_TO_EDGE)
+                        GL21.glTexParameteri(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_WRAP_T, GL21.GL_CLAMP_TO_EDGE)
+                        GL21.glTexParameteri(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MIN_FILTER, GL21.GL_LINEAR)
+                        GL21.glTexParameteri(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAG_FILTER, GL21.GL_LINEAR)
+
+                        if (c[0] == 4)
+                            GL21.glTexImage2D(
+                                GL21.GL_TEXTURE_2D,
+                                0,
+                                GL21.GL_RGBA,
+                                x[0],
+                                y[0],
+                                0,
+                                GL21.GL_RGBA,
+                                GL21.GL_UNSIGNED_BYTE,
+                                img
+                            )
+                        else GL21.glTexImage2D(
+                            GL21.GL_TEXTURE_2D,
+                            0,
+                            GL21.GL_RGB,
+                            x[0],
+                            y[0],
+                            0,
+                            GL21.GL_RGB,
+                            GL21.GL_UNSIGNED_BYTE,
+                            img
+                        )
+                        images[str] = tex
+                    }
+                }
+            }.start()
         }
-        GL21.glBindTexture(GL21.GL_TEXTURE_2D, images[str]!!)
+        else if(images[str] == -1) bindLoadingTexture()
+        else GL21.glBindTexture(GL21.GL_TEXTURE_2D, images[str]!!)
+    }
+
+    private fun bindUrlTexture(url: String) {
+        if(!images.containsKey(url)) {
+            images[url] = -1
+            Thread {
+                val buf: ByteBuffer
+                URL(url).readBytes().apply {
+                    buf = BufferUtils.createByteBuffer(size)
+                    buf.put(this)
+                    buf.flip()
+                }
+                RenderSystem.recordRenderCall {
+                    val tex = GL21.glGenTextures()
+                    useTexture(tex) {
+                        GL21.glTexParameteri(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_WRAP_S, GL21.GL_CLAMP_TO_EDGE)
+                        GL21.glTexParameteri(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_WRAP_T, GL21.GL_CLAMP_TO_EDGE)
+                        GL21.glTexParameteri(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MIN_FILTER, GL21.GL_LINEAR)
+                        GL21.glTexParameteri(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAG_FILTER, GL21.GL_LINEAR)
+
+                        val x = IntArray(1)
+                        val y = IntArray(1)
+                        val c = IntArray(1)
+                        val img = STBImage.stbi_load_from_memory(buf, x, y, c, 0)
+                        if (c[0] == 4)
+                            GL21.glTexImage2D(
+                                GL21.GL_TEXTURE_2D,
+                                0,
+                                GL21.GL_RGBA,
+                                x[0],
+                                y[0],
+                                0,
+                                GL21.GL_RGBA,
+                                GL21.GL_UNSIGNED_BYTE,
+                                img
+                            )
+                        else GL21.glTexImage2D(
+                            GL21.GL_TEXTURE_2D,
+                            0,
+                            GL21.GL_RGB,
+                            x[0],
+                            y[0],
+                            0,
+                            GL21.GL_RGB,
+                            GL21.GL_UNSIGNED_BYTE,
+                            img
+                        )
+                        images[url] = tex
+                    }
+                }
+            }.start()
+        }
+        else if(images[url] != -1) GL21.glBindTexture(GL21.GL_TEXTURE_2D, images[url]!!)
+        else bindLoadingTexture()
     }
 
     fun bindGrayscaleBuffer(buf: ByteBuffer, width: Int, height: Int): Int {

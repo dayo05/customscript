@@ -1,8 +1,5 @@
 package me.ddayo.customscript.client.gui.font
 
-import me.ddayo.customscript.client.gui.RenderUtil
-import org.apache.logging.log4j.LogManager
-import org.lwjgl.opengl.GL21
 
 object FontManager {
     private val fontList = emptyMap<String, Font>().toMutableMap()
@@ -13,6 +10,21 @@ object FontManager {
         return fontList[font]!!
     }
 
+    fun removeFont(font: String) {
+        if(fontList.containsKey(font)) {
+            fontList[font]!!.free()
+            fontList.remove(font)
+        }
+    }
+
+    fun removeAllFont() {
+        fontList.forEach {
+            it.value.free()
+        }
+        fontList.clear()
+    }
+
+    /*
     fun useFontShader(f: () -> Unit) {
         if(fontShader == -1) initFontShader()
         RenderUtil.push {
@@ -57,7 +69,7 @@ object FontManager {
                 else gl_FragColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);
                 
                 //gl_FragColor = texture2D(s_texture, v_texCoord);
-            } 
+            }
         """.trimIndent())
         GL21.glCompileShader(fShader)
         val compilefState = listOf(0).toIntArray()
@@ -75,4 +87,5 @@ object FontManager {
         GL21.glDeleteShader(fShader)
         GL21.glDeleteShader(vShader)
     }
+     */
 }

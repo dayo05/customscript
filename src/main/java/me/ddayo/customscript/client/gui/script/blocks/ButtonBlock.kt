@@ -1,12 +1,15 @@
 package me.ddayo.customscript.client.gui.script.blocks
 
 import me.ddayo.customscript.client.ClientDataHandler
+import me.ddayo.customscript.client.event.OnDynamicValueUpdateEvent
 import me.ddayo.customscript.client.gui.RenderUtil
 import me.ddayo.customscript.client.gui.script.ScriptGui
 import me.ddayo.customscript.util.options.Option
 import me.ddayo.customscript.util.options.Option.Companion.double
 import me.ddayo.customscript.util.options.Option.Companion.string
 import net.minecraft.client.Minecraft
+import net.minecraftforge.common.MinecraftForge
+import net.minecraftforge.eventbus.api.SubscribeEvent
 
 class ButtonBlock: MultiSelectableBlock(), IRendererBlock {
     var buttonX = 0.0
@@ -17,6 +20,8 @@ class ButtonBlock: MultiSelectableBlock(), IRendererBlock {
         private set
     var buttonHeight = 0.0
         private set
+    var renderButtonImage = ""
+        private set
     var buttonImage = ""
         private set
 
@@ -26,12 +31,15 @@ class ButtonBlock: MultiSelectableBlock(), IRendererBlock {
         buttonWidth = context["ButtonWidth"].double!!
         buttonHeight = context["ButtonHeight"].double!!
         buttonImage = context["ButtonImage"].string!!
+
+        renderButtonImage = ClientDataHandler.decodeDynamicValue(buttonImage)
     }
+
 
     override fun render() {
         Minecraft.getInstance().fontRenderer
         RenderUtil.push {
-            RenderUtil.useExtTexture(ClientDataHandler.decodeDynamicValue(buttonImage)) {
+            RenderUtil.useExtTexture(buttonImage) {
                 RenderUtil.render(buttonX, buttonY, buttonWidth, buttonHeight)
             }
         }
@@ -39,6 +47,16 @@ class ButtonBlock: MultiSelectableBlock(), IRendererBlock {
 
     override fun onEnter() {
         base.appendRenderer(this)
+        MinecraftForge.EVENT_BUS.register(this)
+    }
+
+    override fun onRemovedFromQueue() {
+        MinecraftForge.EVENT_BUS.unregister(this)
+    }
+
+    @SubscribeEvent
+    fun onDynamicValueUpdated(event: OnDynamicValueUpdateEvent) {
+        renderButtonImage = ClientDataHandler.decodeDynamicValue(buttonImage)
     }
 
     override val renderParse: ScriptGui.RenderParse

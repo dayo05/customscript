@@ -7,6 +7,7 @@ import me.ddayo.customscript.client.gui.script.ScriptGui
 import me.ddayo.customscript.util.options.Option
 import me.ddayo.customscript.util.options.Option.Companion.double
 import me.ddayo.customscript.util.options.Option.Companion.string
+import me.ddayo.customscript.util.options.Option.Companion.bool
 import net.minecraft.client.Minecraft
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.eventbus.api.SubscribeEvent
@@ -24,6 +25,8 @@ class ButtonBlock: MultiSelectableBlock(), IRendererBlock {
         private set
     var buttonImage = ""
         private set
+    var autoSize = false
+        private set
 
     override fun parseContext(context: Option) {
         buttonX = context["ButtonX"].double!!
@@ -31,6 +34,7 @@ class ButtonBlock: MultiSelectableBlock(), IRendererBlock {
         buttonWidth = context["ButtonWidth"].double!!
         buttonHeight = context["ButtonHeight"].double!!
         buttonImage = context["ButtonImage"].string!!
+        autoSize = context["AutoSize"].bool
 
         renderButtonImage = ClientDataHandler.decodeDynamicValue(buttonImage)
     }
@@ -40,7 +44,9 @@ class ButtonBlock: MultiSelectableBlock(), IRendererBlock {
         Minecraft.getInstance().fontRenderer
         RenderUtil.push {
             RenderUtil.useExtTexture(buttonImage) {
-                RenderUtil.render(buttonX, buttonY, buttonWidth, buttonHeight)
+                if(autoSize)
+                    RenderUtil.render(buttonX, buttonY, RenderUtil.getWidth().toDouble(), RenderUtil.getHeight().toDouble())
+                else RenderUtil.render(buttonX, buttonY, buttonWidth, buttonHeight)
             }
         }
     }

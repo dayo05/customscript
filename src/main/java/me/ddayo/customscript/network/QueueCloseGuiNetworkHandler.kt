@@ -15,7 +15,6 @@ class QueueCloseGuiNetworkHandler {
             }
         }
 
-
         @JvmStatic
         fun decode(buf: PacketBuffer) = QueueCloseGuiNetworkHandler()
     }

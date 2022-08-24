@@ -20,7 +20,6 @@ class CloseGuiNetworkHandler {
             }
         }
 
-
         @JvmStatic
         fun decode(buf: PacketBuffer) = CloseGuiNetworkHandler()
     }

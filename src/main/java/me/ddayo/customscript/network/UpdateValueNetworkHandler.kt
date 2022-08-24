@@ -29,7 +29,6 @@ class UpdateValueNetworkHandler() {
             }
         }
 
-
         @JvmStatic
         fun decode(buf: PacketBuffer) = UpdateValueNetworkHandler(buf.readString(), buf.readString())
     }

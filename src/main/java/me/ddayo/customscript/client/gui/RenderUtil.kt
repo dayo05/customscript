@@ -185,6 +185,9 @@ object RenderUtil {
         GL21.glEnd()
     }
 
+    fun getWidth() = GL21.glGetTexLevelParameteri(GL21.GL_TEXTURE_2D, 0, GL21.GL_TEXTURE_WIDTH)
+    fun getHeight() = GL21.glGetTexLevelParameteri(GL21.GL_TEXTURE_2D, 0, GL21.GL_TEXTURE_HEIGHT)
+
     fun push(x: () -> Unit) {
         GL21.glPushMatrix()
         x()

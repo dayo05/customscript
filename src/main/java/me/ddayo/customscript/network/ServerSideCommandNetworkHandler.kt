@@ -24,7 +24,6 @@ class ServerSideCommandNetworkHandler() {
             }
         }
 
-
         @JvmStatic
         fun decode(buf: PacketBuffer) = ServerSideCommandNetworkHandler(buf.readString())
     }

@@ -48,18 +48,17 @@ open class TextBlock: BlockBase(), IRendererBlock {
 
     override fun onEnter() {
         base.appendRenderer(this)
-        if(usingCustomFont) {
-            val fontInfo = FontManager.getFont(textFont)
-            fontedText = FontedText(fontInfo, renderText).setHeight(textScale.toInt())
-            MinecraftForge.EVENT_BUS.register(this)
-        }
+        if(usingCustomFont)
+            FontManager.getFont(textFont).run {
+                fontedText = FontedText(this, renderText).setHeight(textScale.toInt())
+            }
+        MinecraftForge.EVENT_BUS.register(this)
     }
 
     override fun onRemovedFromQueue() {
-        if(usingCustomFont) {
-            MinecraftForge.EVENT_BUS.unregister(this)
+        if(usingCustomFont)
             fontedText.free()
-        }
+        MinecraftForge.EVENT_BUS.unregister(this)
     }
 
     @SubscribeEvent

@@ -66,7 +66,10 @@ class Option(bkey: String, bvalue: String) {
                     o = o.subOptions.last()
 
                 val splitPos = cmd.indexOf('=')
-                o.append(cmd.substring(0, splitPos), cmd.substring((splitPos + 1) until cmd.length))
+                o.append(createRootOption().apply {
+                    _key = cmd.substring(0, splitPos)
+                    _value = cmd.substring((splitPos + 1) until cmd.length)
+                })
                 prv = d
             }
             return root
@@ -81,5 +84,5 @@ class Option(bkey: String, bvalue: String) {
 
     operator fun get(x: String) = subOptions.filter{ it.key == x }
 
-    fun str(dim: Int = 0): String = ">".repeat(dim) + "$key=$value\n" + subOptions.joinToString("\n") { it.str(dim + 1) }
+    fun str(dim: Int = 0): String = ">".repeat(dim) + "$_key=$_value\n" + subOptions.joinToString("\n") { it.str(dim + 1) }
 }

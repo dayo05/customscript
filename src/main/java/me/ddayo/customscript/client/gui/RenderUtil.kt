@@ -72,6 +72,11 @@ object RenderUtil {
                 buf.put(it)
                 buf.flip()
 
+                val x = IntArray(1)
+                val y = IntArray(1)
+                val c = IntArray(1)
+                val img = STBImage.stbi_load_from_memory(buf, x, y, c, 0)
+
                 RenderSystem.recordRenderCall {
                     val tex = GL21.glGenTextures()
                     useTexture(tex) {
@@ -80,11 +85,6 @@ object RenderUtil {
                         GL21.glTexParameteri(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_WRAP_T, GL21.GL_CLAMP_TO_EDGE)
                         GL21.glTexParameteri(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MIN_FILTER, GL21.GL_LINEAR)
                         GL21.glTexParameteri(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAG_FILTER, GL21.GL_LINEAR)
-
-                        val x = IntArray(1)
-                        val y = IntArray(1)
-                        val c = IntArray(1)
-                        val img = STBImage.stbi_load_from_memory(buf, x, y, c, 0)
 
                         if (c[0] == 4)
                             GL21.glTexImage2D(

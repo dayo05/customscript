@@ -15,9 +15,13 @@ abstract class Resource {
         fun fromLocal(resourceType: ResourceType, uri: String, callback: ((b: ByteArray) -> Unit)? = null) =
             resourceMap.getOrPut("L$resourceType|$uri") { LocalResource(resourceType, uri, callback) }
 
+        fun fromJar(resourceType: ResourceType, uri: String, callback: ((b: ByteArray) -> Unit)? = null) =
+            resourceMap.getOrPut("J$resourceType|$uri") { JarResource(resourceType, uri, callback) }
+
         fun from(resourceType: ResourceType, uri: String, callback: ((b: ByteArray) -> Unit)? = null) =
             if (uri.startsWith("http:") || uri.startsWith("https:")) fromInternet(uri, callback)
             else if (uri.startsWith("server:")) fromServer(resourceType, uri, callback)
+            else if(uri.startsWith("jar:")) fromJar(resourceType, uri, callback)
             else fromLocal(resourceType, uri, callback)
 
         private val resourceMap = mutableMapOf<String, Resource>()
@@ -56,6 +60,15 @@ class LocalResource(resourceType: ResourceType, uri: String, callback: ((b: Byte
             bytes = File("assets/${resourceType.name.lowercase()}", uri).readBytes()
             callback?.invoke(bytes)
         }.start()
+    }
+}
+
+class JarResource(resourceType: ResourceType, uri: String, callback: ((b: ByteArray) -> Unit)? = null): Resource() {
+    init {
+        Thread {
+            bytes = javaClass.getResourceAsStream("assets/${resourceType.name.lowercase()}/${uri.substring(4)}")!!.readBytes()
+            callback?.invoke(bytes)
+        }
     }
 }
 

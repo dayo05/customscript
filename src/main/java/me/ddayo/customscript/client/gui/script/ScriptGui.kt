@@ -10,6 +10,8 @@ import me.ddayo.customscript.network.CloseGuiNetworkHandler
 import me.ddayo.customscript.util.options.CompileError
 import me.ddayo.customscript.util.options.Option
 import net.minecraft.client.Minecraft
+import net.minecraft.client.renderer.entity.PaintingRenderer
+import org.lwjgl.opengl.GL21
 import java.io.File
 
 
@@ -30,10 +32,7 @@ class ScriptGui(scriptFile: String, beginPos: String): GuiBase() {
     private val blocks = script["Block"].map { BlockBase.createBlock(it.value, it, this) }
     private val arrows = script["Arrow"].map { ArrowBase.createArrow(it.value, it) }
 
-    private val renderable = mapOf(Pair(RenderParse.Pre, emptyList<IRendererBlock>().toMutableList()),
-            Pair(RenderParse.Main, emptyList<IRendererBlock>().toMutableList()),
-            Pair(RenderParse.Post, emptyList<IRendererBlock>().toMutableList()))
-
+    private val renderable = mapOf(*RenderParse.values().map { Pair(it, emptyList<IRendererBlock>().toMutableList())}.toTypedArray())
     private var current = blocks.filter { it is BeginBlock && it.label == beginPos }
 
     init {
@@ -92,10 +91,11 @@ class ScriptGui(scriptFile: String, beginPos: String): GuiBase() {
     }
 
     public override fun render(matrixStack: MatrixStack, mouseX: Int, mouseY: Int, partialTicks: Float) {
+        GL21.glEnable(GL21.GL_BLEND)
         FHDScale {
-            renderable[RenderParse.Pre]!!.forEach { it.render() }
-            renderable[RenderParse.Main]!!.forEach { it.render() }
-            renderable[RenderParse.Post]!!.forEach { it.render() }
+            RenderParse.values().forEach {
+                renderable[it]!!.forEach { f -> f.render() }
+            }
         }
     }
 

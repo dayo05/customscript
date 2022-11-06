@@ -1,15 +1,19 @@
 package me.ddayo.customscript.client.gui.font
 
+import me.ddayo.customscript.client.utils.Resource
+import org.apache.logging.log4j.LogManager
 import org.lwjgl.BufferUtils
 import org.lwjgl.stb.STBTTFontinfo
 import org.lwjgl.stb.STBTruetype
-import java.io.File
 import java.nio.ByteBuffer
 import kotlin.math.roundToInt
 
 
 class Font(ttfFile: String) {
-    private val bytes = File("assets/fonts/$ttfFile").readBytes()
+    private val bytes = Resource.fromLocal(Resource.Font, ttfFile).suspend()
+    init {
+        LogManager.getLogger().info(bytes.size)
+    }
     private val byteBuf = BufferUtils.createByteBuffer(bytes.size)
     init {
         byteBuf.put(bytes)
@@ -32,8 +36,6 @@ class Font(ttfFile: String) {
         get() = this._ascent[0]
     public val descent: Int
         get() = this._descent[0]
-    public val lineGap: Int
-        get() = this._lineGap[0]
 
     public fun getScale(height: Int): Float {
         if(!isAllocated) throw IllegalStateException("Font is not allocated")
@@ -63,7 +65,7 @@ class Font(ttfFile: String) {
         val width = calculateWidth(text, height)
         STBTruetype.stbtt_GetFontVMetrics(fontInfo, _ascent, _descent, _lineGap)
 
-        val buf = BufferUtils.createByteBuffer(width * height)
+        val buf = BufferUtils.createByteBuffer(width * height + width)
         val scale = STBTruetype.stbtt_ScaleForPixelHeight(fontInfo, height.toFloat())
 
         _ascent[0] = (ascent * scale).roundToInt()
@@ -84,6 +86,7 @@ class Font(ttfFile: String) {
 
             val y = ascent + c_y1[0]
             buf.position(x + (lsb[0] * scale).roundToInt() + (y * width))
+            LogManager.getLogger().info("${k.value} $width $height ${buf.limit()} ${buf.remaining()} ${(c_y2[0] - c_y1[0]) * width}")
             STBTruetype.stbtt_MakeCodepointBitmap(fontInfo, buf, c_x2[0] - c_x1[0], c_y2[0] - c_y1[0], width, scale, scale, k.value.code)
 
             if(k.index != text.length - 1)

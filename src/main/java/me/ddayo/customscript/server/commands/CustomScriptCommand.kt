@@ -36,6 +36,7 @@ object CustomScriptCommand: CommandHandler.ICommand {
         )
         .then(
             Commands.literal("hud")
+                .requires { it.hasPermissionLevel(2) }
                 .then(
                     Commands.literal("enable")
                         .then(

@@ -54,7 +54,6 @@ class LocalResource(resourceType: ResourceType, uri: String, callback: ((b: Byte
     init {
         Thread {
             bytes = File("assets/${resourceType.name.lowercase()}", uri).readBytes()
-            //bytes = File("asdfasdf.png").readBytes()
             callback?.invoke(bytes)
         }.start()
     }
@@ -68,7 +67,6 @@ class HttpResource(url: String, callback: ((b: ByteArray) -> Unit)? = null): Res
     init {
         Thread {
             bytes = URL(url).readBytes()
-            File("asdfasdf.png").writeBytes(bytes)
             callback?.invoke(bytes)
         }.start()
     }

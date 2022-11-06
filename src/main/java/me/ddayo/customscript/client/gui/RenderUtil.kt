@@ -85,12 +85,6 @@ object RenderUtil {
                         val y = IntArray(1)
                         val c = IntArray(1)
                         val img = STBImage.stbi_load_from_memory(buf, x, y, c, 0)
-                        val xx = IntArray(1)
-                        val yy = IntArray(1)
-                        val cc = IntArray(1)
-                        val test = STBImage.stbi_load("assets/images/$str", xx, yy, cc, 0)
-                        LogManager.getLogger().info("${img?.remaining()} ${test?.remaining()}")
-                        LogManager.getLogger().info("${x[0]} ${y[0]} ${c[0]} ${xx[0]} ${yy[0]} ${cc[0]}")
 
                         if (c[0] == 4)
                             GL21.glTexImage2D(

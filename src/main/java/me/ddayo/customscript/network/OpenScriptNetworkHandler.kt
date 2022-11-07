@@ -1,6 +1,7 @@
 package me.ddayo.customscript.network
 
 import me.ddayo.customscript.client.gui.script.ScriptGui
+import me.ddayo.customscript.client.gui.script.ScriptMode
 import net.minecraft.client.Minecraft
 import net.minecraft.network.PacketBuffer
 import net.minecraftforge.fml.network.NetworkEvent
@@ -25,7 +26,7 @@ class OpenScriptNetworkHandler() {
             val ctx = ctxSuf.get()
             ctx.packetHandled = true
             ctx.enqueueWork {
-                Minecraft.getInstance().displayGuiScreen(ScriptGui(script, begin))
+                Minecraft.getInstance().displayGuiScreen(ScriptGui(ScriptMode.Gui, script, begin))
             }
         }
 

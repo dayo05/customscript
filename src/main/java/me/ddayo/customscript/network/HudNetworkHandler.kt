@@ -3,6 +3,7 @@ package me.ddayo.customscript.network
 import me.ddayo.customscript.client.ClientDataHandler
 import me.ddayo.customscript.client.event.OnHudStateChangedEvent
 import me.ddayo.customscript.client.gui.script.ScriptGui
+import me.ddayo.customscript.client.gui.script.ScriptMode
 import net.minecraft.client.Minecraft
 import net.minecraft.network.PacketBuffer
 import net.minecraftforge.common.MinecraftForge
@@ -26,13 +27,13 @@ class HudNetworkHandler() {
                 ctx.enqueueWork {
                     if(isEnable)
                         Minecraft.getInstance().let {
-                            ClientDataHandler.enabledHud[script] = ScriptGui(script, "hud").apply {
+                            ClientDataHandler.enabledHud[script] = ScriptGui(ScriptMode.Hud, script, "hud").apply {
                                 init(it, it.mainWindow.scaledWidth, it.mainWindow.scaledHeight)
                             }
                         }
                     else {
                         ClientDataHandler.enabledHud[script]?.run {
-                            close()
+                            finish()
                         }
                         ClientDataHandler.enabledHud.remove(script)
                     }

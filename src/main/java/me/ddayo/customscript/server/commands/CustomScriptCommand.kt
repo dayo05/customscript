@@ -7,6 +7,7 @@ import me.ddayo.customscript.CustomScript
 import me.ddayo.customscript.client.gui.RenderUtil
 import me.ddayo.customscript.client.gui.font.FontManager
 import me.ddayo.customscript.client.gui.script.ScriptGui
+import me.ddayo.customscript.client.gui.script.ScriptMode
 import me.ddayo.customscript.network.ClearCacheNetworkHandler.CacheType
 import me.ddayo.customscript.network.ClearCacheNetworkHandler
 import me.ddayo.customscript.server.ServerDataHandler
@@ -225,7 +226,7 @@ object CustomScriptCommand: CommandHandler.ICommand {
         }
 
         if (CustomScript.isClient)
-            Minecraft.getInstance().displayGuiScreen(ScriptGui(script, begin))
+            Minecraft.getInstance().displayGuiScreen(ScriptGui(ScriptMode.Gui, script, begin))
         else ServerDataHandler.openScriptOnPlayers(script, begin, *players.toTypedArray())
         return 1
     }

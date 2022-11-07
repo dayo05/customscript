@@ -15,7 +15,7 @@ import org.lwjgl.opengl.GL21
 import java.io.File
 
 
-class ScriptGui(scriptFile: String, beginPos: String): GuiBase() {
+class ScriptGui(private val mode: ScriptMode, scriptFile: String, beginPos: String): GuiBase() {
     enum class RenderParse {
         Pre, Main, Post
     }
@@ -90,7 +90,12 @@ class ScriptGui(scriptFile: String, beginPos: String): GuiBase() {
         }
     }
 
+    private val renderInit by lazy {
+        if(mode == ScriptMode.Gui)
+            Minecraft.getInstance().mouseHelper.ungrabMouse()
+    }
     public override fun render(matrixStack: MatrixStack, mouseX: Int, mouseY: Int, partialTicks: Float) {
+        renderInit
         GL21.glEnable(GL21.GL_BLEND)
         FHDScale {
             RenderParse.values().forEach {
@@ -165,16 +170,20 @@ class ScriptGui(scriptFile: String, beginPos: String): GuiBase() {
     }
 
     override fun onClose() {
-        close()
-        CustomScript.network.sendToServer(CloseGuiNetworkHandler())
+        finish()
         super.onClose()
     }
 
-    //Used by closing HUD
-    fun close() {
+    fun finish() {
+        if(mode == ScriptMode.Gui)
+            CustomScript.network.sendToServer(CloseGuiNetworkHandler())
         RenderParse.values().forEach {
             clearRenderer(it)
         }
         //RenderUtil.removeAllTextures()
     }
+}
+
+enum class ScriptMode {
+    Gui, Hud
 }

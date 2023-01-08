@@ -8,7 +8,7 @@
 | Version | State | Link |
 | --- | --- | --- |
 | 1.12.2 Forge | Deprecated | [Link](https://github.com/dayo05/customscript/releases/tag/0.5) |
-| 1.16.5 Forge | Supported | [Link](https://github.com/dayo05/customscript/releases/tag/0.7) |
+| 1.16.5 Forge | Supported | [Link](https://github.com/dayo05/customscript/releases/latest) |
 | 1.18.2 Fabric | On Development | TODO |
 
 ## Basic Information

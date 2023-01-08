@@ -9,7 +9,7 @@
 | --- | --- | --- |
 | 1.12.2 Forge | Deprecated | [Link](TODO) |
 | 1.16.5 Forge | Supported | [Link](TODO) |
-| 1.18.2 Fabric | On Development | [Link](TODO) |
+| 1.18.2 Fabric | On Development | TODO |
 
 ## Basic Information
 ### 명령어

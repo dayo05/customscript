@@ -12,7 +12,6 @@ import org.lwjgl.opengl.GL21
 import org.lwjgl.stb.STBImage
 import java.io.File
 import java.nio.ByteBuffer
-import java.nio.ByteOrder
 
 object RenderUtil {
     /**
@@ -114,9 +113,13 @@ object RenderUtil {
                 }
             }
             bindLoadingTexture()
+            withValidate(f)
         }
         else if(images[str] != -1) useTexture(images[str]!!, f)
-        else bindLoadingTexture()
+        else {
+            bindLoadingTexture()
+            withValidate(f)
+        }
     }
 
     /**

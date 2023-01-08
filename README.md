@@ -4,6 +4,13 @@
 > 편집기에 관한 설명은 링크를 참고해주세요 [링크](https://github.com/dayo05/Script-Maker)
 * **중요!! [1.12.2버전을 사용하시는 경우 다음 내용을 참고해주세요.](https://github.com/dayo05/Script-Maker#minecraft-1122-%EC%82%AC%EC%9A%A9%EC%8B%9C%EC%9D%98-%EA%B2%BD%EA%B3%A0)**
 
+## Download
+| Version | State | Link |
+| --- | --- | --- |
+| 1.12.2 Forge | Deprecated | [Link](TODO) |
+| 1.16.5 Forge | Supported | [Link](TODO) |
+| 1.18.2 Fabric | On Development | [Link](TODO) |
+
 ## Basic Information
 ### 명령어
 #### /cs open <player> <script> [open position]

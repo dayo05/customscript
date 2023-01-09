@@ -5,6 +5,8 @@
 * **중요!! [1.12.2버전을 사용하시는 경우 다음 내용을 참고해주세요.](https://github.com/dayo05/Script-Maker#minecraft-1122-%EC%82%AC%EC%9A%A9%EC%8B%9C%EC%9D%98-%EA%B2%BD%EA%B3%A0)**
 
 ## Download
+
+**주의: 1.12.2 버전은 이 문서의 내용이 적용되지 않습니다.**
 | Version | State | Link |
 | --- | --- | --- |
 | 1.12.2 Forge | Deprecated | [Link](https://github.com/dayo05/customscript/releases/tag/0.5) |

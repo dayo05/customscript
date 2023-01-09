@@ -12,6 +12,9 @@
 | 1.18.2 Fabric | On Development | TODO |
 
 ## Basic Information
+### 설정 파일
+* 설정 파일은 서버에 존재하며, 버킷 jar파일과 같은 디렉토리의 customscript.option 파일입니다.(없으면 만드시면 됩니다.)
+* 설정 파일이 없으면, 기본값이 사용됩니다.
 ### 명령어
 #### /cs open <player> <script> [open position]
 * 지정된 플레이어(들)의 스크립트를 실행합니다. 

@@ -18,22 +18,22 @@
 * 설정 파일은 서버에 존재하며, 버킷 jar파일과 같은 디렉토리의 customscript.option 파일입니다.(없으면 만드시면 됩니다.)
 * 설정 파일이 없으면, 기본값이 사용됩니다.
 ### 명령어
-#### /cs open <player> <script> [open position]
+#### /cs open \<player\> \<script\> [open position]
 * 지정된 플레이어(들)의 스크립트를 실행합니다. 
 
 > 만일 open position이 지정되지 않았다면, default로 지정합니다.(처음 Editor을 키면 자동 생성되는 블럭입니다)
-#### /cs hud (enable|disable) <script> <player>
+#### /cs hud (enable|disable) \<script\> \<player\>
 * 지정된 플레이어(들)에게 hud를 표시합니다. open position은 항상 hud로 고정되있습니다.
-#### /cs cache (font|image) clear <player>
+#### /cs cache (font|image) clear \<player\>
 * 비권장
 * 지정된 플레이어(들)에게 캐싱된 이미지 혹은 폰트를 초기화합니다.
-#### /cs value <player> <value-name> <value>
+#### /cs value \<player\> \<value-name\> \<value\>
 * 지정된 플레이어(들)에게 해당 값을 부여합니다. 상세 내용은 동적 수치를 참고해주세요.
-#### /cs internal-value <value-name> <value>
+#### /cs internal-value \<value-name\> \<value\>
 * internal-value에 해당 값을 부여합니다. 상세 내용은 동적 수치를 참고해주세요.
-#### /cs show-value <player> <value-name>
+#### /cs show-value \<player\> \<value-name\>
 * 지정된 플레이어(들)에게 부여된 값을 확인합니다. 상세 내용은 동적 수치를 참고해주세요.
-#### /cs show-internal-value <value-name>
+#### /cs show-internal-value \<value-name\>
 * internal-value에 부여된 값을 확인합니다. 상세 내용은 동적 수치를 참고해주세요.
 
 ### 파일들의 위치

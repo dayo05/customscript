@@ -1,59 +1,35 @@
 package me.ddayo.customscript.client.gui.script.arrows
 
-import me.ddayo.customscript.client.gui.script.ScriptGui
 import me.ddayo.customscript.util.options.Option
+import me.ddayo.customscript.util.options.Option.Companion.int
 import me.ddayo.customscript.util.options.Option.Companion.string
-import org.lwjgl.glfw.GLFW
 
-class Arrow: ArrowBase() {
-    var mouse = ' '
-        private set
-    var key = ""
-        private set
+class Arrow {
+    companion object {
+        val arrows = emptyMap<String, Pair<String, Class<out Arrow>>>().toMutableMap()
+        fun<T> registerArrow(name: String, contextName: String, arrow: Class<T>) where T: Arrow {
+            arrows[name] = Pair(contextName, arrow)
+        }
 
-    override fun parseContext(context: Option) {
-        super.parseContext(context)
-        val a = context["Key"].string ?: "0default"
-        mouse = a[0]
-        key = a.substring(1)
+        fun createArrow(name: String, opt: Option): Arrow {
+            val arrow = arrows[name]!!.second.newInstance()
+            if(opt["Context"].string != arrows[name]!!.first) throw IllegalArgumentException("Context type ${opt["Context"].first()} and declared context type ${arrows[name]!!.first} are different")
+            arrow.parseContext(opt["Context"].first())
+            return arrow
+        }
+
+        init {
+            registerArrow("Arrow", "ArrowContext", Arrow::class.java)
+        }
     }
 
-    private val ignoreKeyboard get() = key == "default"
+    var from = 0
+        private set
+    var to = 0
+        private set
 
-    override fun onKeyboardInput(gui: ScriptGui, keyCode: Int, scanCode: Int, modifier: Int): Boolean {
-        if(mouse != 'p') return false
-        return keyCode == key[0].code
-    }
-
-    override fun onMouseInput(gui: ScriptGui, mouseX: Double, mouseY: Double, mouseButton: Int) = when (mouse) {
-        'p' -> false
-        '0' -> {
-            if(mouseButton != GLFW.GLFW_MOUSE_BUTTON_LEFT) false
-            else if(ignoreKeyboard) true
-            else if(key[0] in '0'..'9')
-                gui.numberState[key[0].code - '0'.code]
-            else if(key[0] in 'a'..'z')
-                gui.alphabetState[key[0].code - 'a'.code]
-            else false
-        }
-        '1' -> {
-            if(mouseButton != GLFW.GLFW_MOUSE_BUTTON_RIGHT) false
-            else if(ignoreKeyboard) true
-            else if(key[0] in '0'..'9')
-                gui.numberState[key[0].code - '0'.code]
-            else if(key[0] in 'a'..'z')
-                gui.alphabetState[key[0].code - 'a'.code]
-            else false
-        }
-        '2' -> {
-            if(mouseButton != GLFW.GLFW_MOUSE_BUTTON_MIDDLE) false
-            else if(ignoreKeyboard) true
-            else if(key[0] in '0'..'9')
-                gui.numberState[key[0].code - '0'.code]
-            else if(key[0] in 'a'..'z')
-                gui.alphabetState[key[0].code - 'a'.code]
-            else false
-        }
-        else -> false
+    fun parseContext(context: Option) {
+        from = context["From"].int!!
+        to = context["To"].int!!
     }
 }

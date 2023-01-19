@@ -172,17 +172,14 @@ object CustomScriptCommand: CommandHandler.ICommand {
             Commands.literal("show-value")
                 .requires { it.hasPermissionLevel(2) }
                 .then(
-                    Commands.argument("player", UUIDArgument.func_239194_a_())
+                    Commands.argument("player", GameProfileArgument.gameProfile())
                         .then(Commands.argument("value name", StringArgumentType.string())
                             .executes {
                                 it.getArgument("value name", String::class.java).run {
                                     it.source.sendFeedback(
                                         StringTextComponent(
                                             "Value $this: ${
-                                                ServerDataHandler.dynamicData[it.getArgument(
-                                                    "player",
-                                                    UUID::class.java
-                                                )]?.get(this)
+                                                ServerDataHandler.dynamicData[GameProfileArgument.getGameProfiles(it, "player").first().id]?.get(this)
                                             }"
                                         ),
                                         true

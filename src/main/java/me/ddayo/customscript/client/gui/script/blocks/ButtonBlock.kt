@@ -1,75 +1,68 @@
 package me.ddayo.customscript.client.gui.script.blocks
 
-import me.ddayo.customscript.client.ClientDataHandler
-import me.ddayo.customscript.client.event.OnDynamicValueUpdateEvent
 import me.ddayo.customscript.client.gui.RenderUtil
 import me.ddayo.customscript.client.gui.script.ScriptGui
+import me.ddayo.customscript.util.options.CalculableValue
 import me.ddayo.customscript.util.options.Option
-import me.ddayo.customscript.util.options.Option.Companion.double
 import me.ddayo.customscript.util.options.Option.Companion.string
 import me.ddayo.customscript.util.options.Option.Companion.bool
 import net.minecraft.client.Minecraft
-import net.minecraftforge.common.MinecraftForge
-import net.minecraftforge.eventbus.api.SubscribeEvent
 
-class ButtonBlock: MultiSelectableBlock(), IRendererBlock {
-    var buttonX = 0.0
-        private set
-    var buttonY = 0.0
-        private set
-    var buttonWidth = 0.0
-        private set
-    var buttonHeight = 0.0
-        private set
-    var renderButtonImage = ""
-        private set
-    var buttonImage = ""
-        private set
+class ButtonBlock: PendingBlock() {
+    private class ButtonRenderer(
+        private val buttonX: CalculableValue,
+        private val buttonY: CalculableValue,
+        private val buttonWidth: CalculableValue,
+        private val buttonHeight: CalculableValue,
+        private val buttonImage: CalculableValue,
+        private val autoSize: Boolean
+    ) : ScriptRenderer() {
+        override fun render() {
+            Minecraft.getInstance().fontRenderer
+            RenderUtil.push {
+                RenderUtil.useExtTexture(buttonImage.string) {
+                    if (autoSize)
+                        RenderUtil.render(buttonX.int, buttonY.int, RenderUtil.getWidth(), RenderUtil.getHeight())
+                    else RenderUtil.render(buttonX.int, buttonY.int, buttonWidth.int, buttonHeight.int)
+                }
+            }
+        }
+
+        override val renderParse: ScriptGui.RenderParse
+            get() = ScriptGui.RenderParse.Main
+
+        override fun onUpdateValue() {
+            buttonX.updateValue()
+            buttonY.updateValue()
+            buttonWidth.updateValue()
+            buttonHeight.updateValue()
+            buttonImage.updateValue()
+        }
+    }
+
+    private lateinit var buttonX: CalculableValue
+    private lateinit var buttonY: CalculableValue
+    private lateinit var buttonWidth: CalculableValue
+    private lateinit var buttonHeight: CalculableValue
+    private lateinit var buttonImage: CalculableValue
     var autoSize = false
         private set
 
     override fun parseContext(context: Option) {
-        buttonX = context["ButtonX"].double!!
-        buttonY = context["ButtonY"].double!!
-        buttonWidth = context["ButtonWidth"].double!!
-        buttonHeight = context["ButtonHeight"].double!!
-        buttonImage = context["ButtonImage"].string!!
-        autoSize = context["AutoSize"].bool
-
-        renderButtonImage = ClientDataHandler.decodeDynamicValue(buttonImage)
-    }
-
-
-    override fun render() {
-        Minecraft.getInstance().fontRenderer
-        RenderUtil.push {
-            RenderUtil.useExtTexture(buttonImage) {
-                if(autoSize)
-                    RenderUtil.render(buttonX, buttonY, RenderUtil.getWidth().toDouble(), RenderUtil.getHeight().toDouble())
-                else RenderUtil.render(buttonX, buttonY, buttonWidth, buttonHeight)
-            }
-        }
+        buttonX = CalculableValue(context["ButtonX"].string!!)
+        buttonY = CalculableValue(context["ButtonY"].string!!)
+        buttonWidth = CalculableValue(context["ButtonWidth"].string!!)
+        buttonHeight = CalculableValue(context["ButtonHeight"].string!!)
+        buttonImage = CalculableValue(context["ButtonImage"].string!!, true)
+        autoSize = context["AutoSize"].bool ?: false
     }
 
     override fun onEnter() {
-        base.appendRenderer(this)
-        MinecraftForge.EVENT_BUS.register(this)
+        base.appendRenderer(ButtonRenderer(buttonX, buttonY, buttonWidth, buttonHeight, buttonImage, autoSize))
     }
-
-    override fun onRemovedFromQueue() {
-        MinecraftForge.EVENT_BUS.unregister(this)
-    }
-
-    @SubscribeEvent
-    fun onDynamicValueUpdated(event: OnDynamicValueUpdateEvent) {
-        renderButtonImage = ClientDataHandler.decodeDynamicValue(buttonImage)
-    }
-
-    override val renderParse: ScriptGui.RenderParse
-        get() = base.Main
 
     override fun validateKeyInput(gui: ScriptGui, keyCode: Int, scanCode: Int, modifier: Int) = PendingResult.Pass
 
-    override fun validateMouseInput(gui: ScriptGui, mouseX: Double, mouseY: Double, mouseButton: Int)
-        = if(mouseX in buttonX..(buttonX + buttonWidth) && mouseY in buttonY..(buttonY + buttonHeight)) PendingResult.Pass else PendingResult.Deny
+    override fun validateMouseInput(gui: ScriptGui, mouseX: Double, mouseY: Double, mouseButton: Int) =
+        if (mouseX in buttonX.double..(buttonX.double + buttonWidth.double) && mouseY in buttonY.double..(buttonY.double + buttonHeight.double)) PendingResult.Pass else PendingResult.Deny
 }

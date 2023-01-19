@@ -2,37 +2,58 @@ package me.ddayo.customscript.client.gui.script
 
 import com.mojang.blaze3d.matrix.MatrixStack
 import me.ddayo.customscript.CustomScript
-import me.ddayo.customscript.client.gui.script.arrows.ArrowBase
+import me.ddayo.customscript.client.event.OnDynamicValueUpdateEvent
+import me.ddayo.customscript.client.gui.script.arrows.Arrow
 import me.ddayo.customscript.client.gui.GuiBase
-import me.ddayo.customscript.client.gui.RenderUtil
 import me.ddayo.customscript.client.gui.script.blocks.*
 import me.ddayo.customscript.network.CloseGuiNetworkHandler
 import me.ddayo.customscript.util.options.CompileError
 import me.ddayo.customscript.util.options.Option
+import me.ddayo.customscript.util.options.Option.Companion.bool
+import me.ddayo.customscript.util.options.Option.Companion.string
 import net.minecraft.client.Minecraft
-import net.minecraft.client.renderer.entity.PaintingRenderer
+import net.minecraft.util.text.StringTextComponent
+import net.minecraftforge.common.MinecraftForge
+import net.minecraftforge.eventbus.api.SubscribeEvent
+import org.apache.maven.artifact.versioning.DefaultArtifactVersion
 import org.lwjgl.opengl.GL21
 import java.io.File
+import java.util.*
 
 
 class ScriptGui(private val mode: ScriptMode, scriptFile: String, beginPos: String): GuiBase() {
+    companion object {
+        val minimumRequiredVersion = DefaultArtifactVersion("0.8")
+    }
+
     enum class RenderParse {
         Pre, Main, Post
     }
 
-    public val Pre = RenderParse.Pre
-    public val Main = RenderParse.Main
-    public val Post = RenderParse.Post
-
     private val scriptFileRoot =
-            if (CustomScript.isTest) File("dummy") else File(Minecraft.getInstance().gameDir, CustomScript.MOD_ID)
+        if (CustomScript.isTest) File("dummy") else File(Minecraft.getInstance().gameDir, CustomScript.MOD_ID)
     private val scFile = if (CustomScript.isTest) File(scriptFile) else File(scriptFileRoot, scriptFile)
 
-    private val script = Option.readOption(if (scFile.exists() && scFile.isFile && scFile.canRead()) scFile.readText() else "")
-    private val blocks = script["Block"].map { BlockBase.createBlock(it.value, it, this) }
-    private val arrows = script["Arrow"].map { ArrowBase.createArrow(it.value, it) }
+    private val script =
+        Option.readOption(if (scFile.exists() && scFile.isFile && scFile.canRead()) scFile.readText() else "")
 
-    private val renderable = mapOf(*RenderParse.values().map { Pair(it, emptyList<IRendererBlock>().toMutableList())}.toTypedArray())
+    init {
+        MinecraftForge.EVENT_BUS.register(this)
+        if (minimumRequiredVersion > DefaultArtifactVersion(script["Version"].string)) {
+            Minecraft.getInstance().player?.sendMessage(
+                StringTextComponent("Not supported version: ${script["Version"].string}, Required: $minimumRequiredVersion"),
+                UUID.randomUUID()
+            )
+            throw CompileError("Not supported version: ${script["Version"].string}, Required: $minimumRequiredVersion")
+        }
+    }
+
+    private val canMovePrevious = script["CanMovePrevious"].bool ?: false
+    private val blocks = script["Block"].map { BlockBase.createBlock(it.value, it, this) }
+    private val arrows = script["Arrow"].map { Arrow.createArrow(it.value, it) }
+
+    val renderable =
+        mapOf(*RenderParse.values().map { Pair(it, emptyList<ScriptRenderer>().toMutableList()) }.toTypedArray())
     private var current = blocks.filter { it is BeginBlock && it.label == beginPos }
 
     init {
@@ -41,7 +62,7 @@ class ScriptGui(private val mode: ScriptMode, scriptFile: String, beginPos: Stri
 
     private var pending = false
 
-    private var prevNs = -1
+    private val trackPrev = Stack<Int>()
 
     init {
         moveNext()
@@ -49,24 +70,48 @@ class ScriptGui(private val mode: ScriptMode, scriptFile: String, beginPos: Stri
 
     public fun moveNext() {
         if (pending) return
-        prevNs = current.first().ns
-        current = current.flatMap { arrows.filter { it.from == prevNs }.flatMap { to -> blocks.filter { it.ns == to.to } } }
+        trackPrev.push(current.first().ns)
+        current = current.flatMap {
+            arrows.filter { it.from == trackPrev.peek() }.flatMap { to -> blocks.filter { it.ns == to.to } }
+        }
 
         if (current.size > 2) {
-            if (current.any { it !is MultiSelectableBlock }) throw CompileError("There are two+ non-multi-selectable blocks which is connect to current pos")
-            current.forEach { it.onEnter() }
+            if (current.any { it !is PendingBlock }) throw CompileError("There are two+ non-multi-selectable blocks which is connect to current pos")
+            current.forEach {
+                if (it is ISubscribeDynamicValueBlock)
+                    it.onUpdateValue()
+                it.onEnter()
+            }
             pending = true
         } else if (current.isEmpty()) closeScreen()
         else {
-            current.first().onEnter()
-            pending = current.first() is PendingBlock
+            current.first().let {
+                if (it is ISubscribeDynamicValueBlock)
+                    it.onUpdateValue()
+                it.onEnter()
+                pending = it is PendingBlock
+            }
             if (!pending) moveNext()
         }
     }
 
+    public fun movePrev() {
+        if (!pending) return
+        current.forEach { (it as PendingBlock).onExitPending() }
+        while (true) {
+            val b = blocks.first { it.ns == trackPrev.peek() }
+            if (b is PendingBlock) {
+                trackPrev.pop()
+                val cached = arrows.filter { it.from == trackPrev.peek() }.map { it.to }
+                current = blocks.filter { cached.contains(it.ns) }
+                break
+            }
+            b.onRevert()
+            trackPrev.pop()
+        }
+    }
+
     public fun cancelPending(to: Int) {
-        clearRenderer(RenderParse.Main)
-        clearRenderer(RenderParse.Post)
         if (!current.any { it.ns == to }) throw IllegalStateException("Not able to load $to")
         if (!pending) throw IllegalStateException("Function is not pending")
 
@@ -75,26 +120,35 @@ class ScriptGui(private val mode: ScriptMode, scriptFile: String, beginPos: Stri
             it.onExitPending()
         }
 
-        prevNs = current.first().ns
-        current = current.filter { it.ns == to }.flatMap { arrows.filter { it.from == to }.flatMap { to -> blocks.filter { it.ns == to.to } } }
+        clearRenderer(RenderParse.Main)
+        clearRenderer(RenderParse.Post)
+
+        trackPrev.push(to)
+        current = current.filter { it.ns == to }
+            .flatMap { arrows.filter { it.from == to }.flatMap { to -> blocks.filter { it.ns == to.to } } }
 
         if (current.size > 2) {
-            if (current.any { it !is MultiSelectableBlock }) throw CompileError("There are two+ non-multi-selectable blocks which is connect to current pos")
+            if (current.any { it !is PendingBlock }) throw CompileError("There are two+ non-multi-selectable blocks which is connect to current pos")
             pending = true
         } else if (current.isEmpty()) {
             if (!CustomScript.isTest) closeScreen()
         } else {
-            current.first().onEnter()
-            pending = current.first() is PendingBlock
+            current.first().let {
+                if (it is ISubscribeDynamicValueBlock)
+                    it.onUpdateValue()
+                it.onEnter()
+                pending = it is PendingBlock
+            }
             if (!pending) moveNext()
         }
     }
 
     private val renderInit by lazy {
-        if(mode == ScriptMode.Gui)
+        if (mode == ScriptMode.Gui)
             Minecraft.getInstance().mouseHelper.ungrabMouse()
     }
-    public override fun render(matrixStack: MatrixStack, mouseX: Int, mouseY: Int, partialTicks: Float) {
+
+    override fun render(matrixStack: MatrixStack, mouseX: Int, mouseY: Int, partialTicks: Float) {
         renderInit
         GL21.glEnable(GL21.GL_BLEND)
         FHDScale {
@@ -107,10 +161,13 @@ class ScriptGui(private val mode: ScriptMode, scriptFile: String, beginPos: Stri
     override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int) = mouseHandler(mouseX, mouseY) { mx, my ->
         if (!pending) super.mouseClicked(mouseX, mouseY, button)
 
+        if (canMovePrevious && button == 1) {
+            movePrev()
+            return@mouseHandler super.mouseClicked(mouseX, mouseY, button)
+        }
         for (x in current) {
             val k = (x as PendingBlock).validateMouseInput(this, mx, my, button)
-            if (k == PendingBlock.PendingResult.Force || arrows.firstOrNull { it.from == prevNs && it.to == x.ns }.run { this?.onMouseInput(this@ScriptGui, mx, my, button) == true }
-                    && k == PendingBlock.PendingResult.Pass) {
+            if (k == PendingBlock.PendingResult.Pass) {
                 cancelPending(x.ns)
                 break
             }
@@ -131,8 +188,7 @@ class ScriptGui(private val mode: ScriptMode, scriptFile: String, beginPos: Stri
 
         for (x in current) {
             val k = (x as PendingBlock).validateKeyInput(this, keyCode, scanCode, modifiers)
-            if (k == PendingBlock.PendingResult.Force || arrows.first { it.from == prevNs && it.to == x.ns }.onKeyboardInput(this, keyCode, scanCode, modifiers)
-                    && k == PendingBlock.PendingResult.Pass) {
+            if (k == PendingBlock.PendingResult.Pass) {
                 cancelPending(x.ns)
                 break
             }
@@ -148,14 +204,14 @@ class ScriptGui(private val mode: ScriptMode, scriptFile: String, beginPos: Stri
         return super.keyReleased(keyCode, scanCode, modifiers)
     }
 
-    fun appendRenderer(block: IRendererBlock) = renderable[block.renderParse]!!.add(block)
-    fun popRenderer(block: IRendererBlock) = popRenderer(block.renderParse)
-    fun popRenderer(parse: RenderParse) {
-        renderable[parse]!!.last().onRemovedFromQueue()
-        renderable[parse]!!.removeLast()
-    }
-    fun clearRenderer(block: IRendererBlock) = clearRenderer(block.renderParse)
-    fun clearRenderer(parse: RenderParse){
+    fun appendRenderer(block: ScriptRenderer) = renderable[block.renderParse]!!.add(block)
+    fun popRenderer(block: ScriptRenderer) = popRenderer(block.renderParse)
+    fun popRenderer(parse: RenderParse) = renderable[parse]!!.removeLast().apply {
+            onRemovedFromQueue()
+        }
+
+    fun clearRenderer(block: ScriptRenderer) = clearRenderer(block.renderParse)
+    fun clearRenderer(parse: RenderParse) {
         renderable[parse]!!.forEach { it.onRemovedFromQueue() }
         renderable[parse]!!.clear()
     }
@@ -175,12 +231,23 @@ class ScriptGui(private val mode: ScriptMode, scriptFile: String, beginPos: Stri
     }
 
     fun finish() {
-        if(mode == ScriptMode.Gui)
+        if (mode == ScriptMode.Gui)
             CustomScript.network.sendToServer(CloseGuiNetworkHandler())
         RenderParse.values().forEach {
             clearRenderer(it)
         }
+
+        MinecraftForge.EVENT_BUS.unregister(this)
         //RenderUtil.removeAllTextures()
+    }
+
+    @SubscribeEvent
+    fun onDynamicValueUpdated(event: OnDynamicValueUpdateEvent) {
+        current.forEach {
+            if (it is ISubscribeDynamicValueBlock)
+                it.onUpdateValue()
+        }
+        renderable.forEach { it.value.forEach { it.onUpdateValue() } }
     }
 }
 

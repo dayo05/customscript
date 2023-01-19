@@ -1,6 +1,7 @@
 package me.ddayo.customscript.client.utils
 
 import org.apache.logging.log4j.LogManager
+import org.apache.logging.log4j.core.tools.picocli.CommandLine.InitializationException
 import java.io.File
 import java.net.URL
 
@@ -40,6 +41,7 @@ abstract class Resource {
         var test = getBuffer()
         while(test == null) {
             Thread.yield()
+            if(::errorThrown.isInitialized) throw InitializationException("Cannot load Error: ", errorThrown)
             test = getBuffer()
         }
         return test
@@ -52,35 +54,44 @@ abstract class Resource {
         Scripts,
         Misc
     }
-}
 
-class LocalResource(resourceType: ResourceType, uri: String, callback: ((b: ByteArray) -> Unit)? = null): Resource() {
+    abstract fun load()
+    private lateinit var errorThrown: Exception
+
     init {
         Thread {
-            bytes = File("assets/${resourceType.name.lowercase()}", uri).readBytes()
-            callback?.invoke(bytes)
+            try {
+                load()
+            } catch(e: Exception) {
+                errorThrown = e
+            }
         }.start()
     }
 }
 
-class JarResource(resourceType: ResourceType, uri: String, callback: ((b: ByteArray) -> Unit)? = null): Resource() {
-    init {
-        Thread {
-            bytes = javaClass.getResourceAsStream("assets/${resourceType.name.lowercase()}/${uri.substring(4)}")!!.readBytes()
-            callback?.invoke(bytes)
-        }
+class LocalResource(val resourceType: ResourceType, val uri: String, val callback: ((b: ByteArray) -> Unit)? = null): Resource() {
+    override fun load() {
+        bytes = File("assets/${resourceType.name.lowercase()}", uri).readBytes()
+        callback?.invoke(bytes)
+    }
+}
+
+class JarResource(val resourceType: ResourceType, val uri: String, val callback: ((b: ByteArray) -> Unit)? = null): Resource() {
+    override fun load() {
+        bytes = javaClass.getResourceAsStream("assets/${resourceType.name.lowercase()}/${uri.substring(4)}")!!.readBytes()
+        callback?.invoke(bytes)
     }
 }
 
 class ServerResource(resourceType: ResourceType, serverAssetUri: String, callback: ((b: ByteArray) -> Unit)? = null): Resource() {
-
+    override fun load() {
+        TODO("Not yet implemented")
+    }
 }
 
-class HttpResource(url: String, callback: ((b: ByteArray) -> Unit)? = null): Resource() {
-    init {
-        Thread {
-            bytes = URL(url).readBytes()
-            callback?.invoke(bytes)
-        }.start()
+class HttpResource(val url: String, val callback: ((b: ByteArray) -> Unit)? = null): Resource() {
+    override fun load() {
+        bytes = URL(url).readBytes()
+        callback?.invoke(bytes)
     }
 }

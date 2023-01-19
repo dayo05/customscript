@@ -11,6 +11,6 @@ abstract class PendingBlock: BlockBase() {
     open fun tick() = PendingResult.Deny
 
     enum class PendingResult {
-        Deny, Pass, Force
+        Deny, Pass
     }
 }

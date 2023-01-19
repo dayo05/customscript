@@ -23,7 +23,7 @@ class UpdateValueNetworkHandler() {
             ctx.packetHandled = true
             ctx.enqueueWork {
                 LogManager.getLogger().info("Value updated: ${message.name} ${message.value}")
-                ClientDataHandler.dynamicValues[message.name] = message.value
+                ClientDataHandler.updateDynamicValue(message.name, message.value)
 
                 MinecraftForge.EVENT_BUS.post(OnDynamicValueUpdateEvent(message.name, message.value))
             }

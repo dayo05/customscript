@@ -37,7 +37,7 @@ class Option(bkey: String, bvalue: String) {
         public val List<Option>.double
             get() = this.firstOrNull()?.value?.toDouble()
         public val List<Option>.bool
-            get() = this.firstOrNull()?.value?.lowercase().toBoolean()
+            get() = this.firstOrNull()?.value?.lowercase()?.toBoolean()
 
         private fun countStartRArrow(s: String): Pair<Int, String>
         {

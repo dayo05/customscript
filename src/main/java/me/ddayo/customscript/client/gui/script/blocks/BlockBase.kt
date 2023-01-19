@@ -11,7 +11,7 @@ abstract class BlockBase {
     companion object {
         private val blocks = emptyMap<String, Pair<String, Class<out BlockBase>>>().toMutableMap()
 
-        fun <T> registerBlock(name: String, contextName: String, cls: Class<T>) where T: BlockBase {
+        fun <T> registerBlock(name: String, contextName: String, cls: Class<T>) where T : BlockBase {
             blocks[name] = Pair(contextName, cls)
         }
 
@@ -25,7 +25,7 @@ abstract class BlockBase {
         }
 
         fun createBlock(name: String, opt: Option, base: ScriptGui): BlockBase {
-            if(!blocks.containsKey(name))
+            if (!blocks.containsKey(name))
                 throw CompileError("Not supported block: $name")
             return (blocks[name]!!.second.constructors.first().newInstance() as BlockBase).apply {
                 this.base = base
@@ -46,4 +46,5 @@ abstract class BlockBase {
         private set
 
     open fun onEnter() {}
+    open fun onRevert() {}
 }

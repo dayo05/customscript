@@ -1,90 +1,78 @@
 package me.ddayo.customscript.client.gui.script.blocks
 
 import com.mojang.blaze3d.matrix.MatrixStack
-import me.ddayo.customscript.client.ClientDataHandler
 import me.ddayo.customscript.client.event.OnDynamicValueUpdateEvent
 import me.ddayo.customscript.client.gui.RenderUtil
 import me.ddayo.customscript.client.gui.font.FontManager
 import me.ddayo.customscript.client.gui.font.FontedText
 import me.ddayo.customscript.client.gui.script.ScriptGui
+import me.ddayo.customscript.util.options.CalculableValue
 import me.ddayo.customscript.util.options.Option
-import me.ddayo.customscript.util.options.Option.Companion.double
 import me.ddayo.customscript.util.options.Option.Companion.string
 import net.minecraft.client.Minecraft
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.eventbus.api.SubscribeEvent
 import org.lwjgl.opengl.GL21
 
-open class TextBlock: BlockBase(), IRendererBlock {
-    var text = ""
-        private set
-    var textX = 0.0
-        private set
-    var textY = 0.0
-        private set
-    var textScale = 0.0
-        private set
-    var textFont = ""
-    lateinit var fontedText: FontedText
+class TextBlock: BlockBase() {
+    private class TextScriptRenderer(private val text: CalculableValue, private val textX: CalculableValue, private val textY: CalculableValue, private val textScale: CalculableValue, private val textFont: String, private val textColor: UInt): ScriptRenderer() {
+        private val usingCustomFont = textFont.isNotBlank()
+        lateinit var fontedText: FontedText
+        init {
+            if(usingCustomFont)
+                FontManager.getFont(textFont).run {
+                    fontedText = FontedText(this, text.string).setHeight(textScale.int)
+                }
+        }
+        override val renderParse: ScriptGui.RenderParse
+            get() = ScriptGui.RenderParse.Post
+        override fun onRemovedFromQueue() {
+            if(usingCustomFont)
+                fontedText.free()
+        }
+        override fun render() {
+            RenderUtil.push {
+                if(!usingCustomFont) {
+                    GL21.glScaled(textScale.double, textScale.double, textScale.double)
 
-    var textColor = 0xffffffu
+                    Minecraft.getInstance().fontRenderer.drawString(
+                        MatrixStack(),
+                        text.string,
+                        textX.float / textScale.float,
+                        textY.float / textScale.float,
+                        textColor.toInt()
+                    )
+                }
+                else fontedText.render(textX.double, textY.double, textColor)
+            }
+        }
 
-    var usingCustomFont = false
+        override fun onUpdateValue() {
+            text.updateValue()
+            textX.updateValue()
+            textY.updateValue()
+            textScale.updateValue()
+        }
+    }
+    private lateinit var text: CalculableValue
+    private lateinit var textX: CalculableValue
+    private lateinit var textY: CalculableValue
+    private lateinit var textScale: CalculableValue
 
-    var renderText = ""
+    private var textFont = ""
+
+    private var textColor = 0xffffffu
 
     override fun parseContext(context: Option) {
-        text = context["Text"].string!!
-        renderText = ClientDataHandler.decodeDynamicValue(text)
-        textX = context["TextX"].double!!
-        textY = context["TextY"].double!!
-        textScale = context["TextScale"].double ?: 1.0
+        text = CalculableValue(context["Text"].string!!, true)
+        textX = CalculableValue(context["TextX"].string!!)
+        textY = CalculableValue(context["TextY"].string!!)
+        textScale = CalculableValue(context["TextScale"].string ?: "1.0")
         textFont = context["TextFont"].string ?: ""
         textColor = (context["TextColor"].string ?: "ffffff").toUInt(16)
-
-        if(textFont != "")
-            usingCustomFont = true
     }
 
     override fun onEnter() {
-        base.appendRenderer(this)
-        if(usingCustomFont)
-            FontManager.getFont(textFont).run {
-                fontedText = FontedText(this, renderText).setHeight(textScale.toInt())
-            }
-        MinecraftForge.EVENT_BUS.register(this)
+        base.appendRenderer(TextScriptRenderer(text, textX, textY, textScale, textFont, textColor))
     }
-
-    override fun onRemovedFromQueue() {
-        if(usingCustomFont)
-            fontedText.free()
-        MinecraftForge.EVENT_BUS.unregister(this)
-    }
-
-    @SubscribeEvent
-    fun onDynamicValueUpdated(event: OnDynamicValueUpdateEvent) {
-        renderText = ClientDataHandler.decodeDynamicValue(text)
-        if (usingCustomFont)
-            fontedText.updateText(renderText)
-    }
-
-    override fun render() {
-        RenderUtil.push {
-            if(!usingCustomFont) {
-                GL21.glScaled(textScale, textScale, textScale)
-
-                Minecraft.getInstance().fontRenderer.drawString(
-                        MatrixStack(),
-                        renderText,
-                        (textX / textScale).toFloat(),
-                        (textY / textScale).toFloat(),
-                    textColor.toInt()
-                )
-            }
-            else fontedText.render(textX, textY, textColor)
-        }
-    }
-
-    override val renderParse: ScriptGui.RenderParse
-        get() = base.Post
 }

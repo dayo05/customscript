@@ -1,16 +1,11 @@
 package me.ddayo.customscript.client
 
 import me.ddayo.customscript.client.gui.script.ScriptGui
+import me.ddayo.customscript.util.options.CalculableValue
 
 object ClientDataHandler {
-    internal val dynamicValues = emptyMap<String, String>().toMutableMap()
-    fun decodeDynamicValue(k: String): String {
-            var rtn = k
-            dynamicValues.forEach {
-                rtn = rtn.replace("{${it.key}}", it.value)
-            }
-            return rtn
-        }
+
+    fun updateDynamicValue(key: String, value: String) = CalculableValue.setValue(key, value)
 
     internal val enabledHud = emptyMap<String, ScriptGui>().toMutableMap()
 }

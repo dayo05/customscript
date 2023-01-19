@@ -15,6 +15,7 @@ import net.minecraftforge.fml.event.lifecycle.FMLDedicatedServerSetupEvent
 import net.minecraftforge.fml.network.NetworkDirection
 import net.minecraftforge.fml.network.NetworkRegistry
 import net.minecraftforge.fml.network.simple.SimpleChannel
+import java.io.File
 import java.util.*
 
 @Mod(MOD_ID)
@@ -32,6 +33,7 @@ class CustomScriptMod {
     fun clientInit(event: FMLClientSetupEvent) {
         CustomScript.isClient = true
         MinecraftForge.EVENT_BUS.register(ClientEventHandler)
+        File("customscript").mkdir()
     }
 
     @SubscribeEvent

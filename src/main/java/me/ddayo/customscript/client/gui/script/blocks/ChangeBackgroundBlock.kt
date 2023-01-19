@@ -1,18 +1,33 @@
 package me.ddayo.customscript.client.gui.script.blocks
 
-import me.ddayo.customscript.client.ClientDataHandler
-import me.ddayo.customscript.client.event.OnDynamicValueUpdateEvent
 import me.ddayo.customscript.client.gui.RenderUtil
 import me.ddayo.customscript.client.gui.script.ScriptGui
+import me.ddayo.customscript.util.options.CalculableValue
 import me.ddayo.customscript.util.options.CompileError
 import me.ddayo.customscript.util.options.Option
 import me.ddayo.customscript.util.options.Option.Companion.string
-import net.minecraftforge.common.MinecraftForge
-import net.minecraftforge.eventbus.api.SubscribeEvent
+import java.util.Stack
 
 class ChangeBackgroundBlock: BlockBase() {
-    var image = ""
-    var type = 0
+    private class BackgroundRenderer(private val image: CalculableValue): ScriptRenderer() {
+        override val renderParse: ScriptGui.RenderParse
+            get() = ScriptGui.RenderParse.Pre
+
+        override fun render() {
+            image.string.split("\n").forEach {
+                if(it != "null" && it.isNotBlank())
+                    RenderUtil.useExtTexture(it) { RenderUtil.render() }
+            }
+        }
+
+        override fun onUpdateValue() {
+            image.updateValue()
+        }
+    }
+
+    private lateinit var image: CalculableValue
+    private var type = 0
+
     override fun parseContext(context: Option) {
         type = when (context["Type"].string) {
             "Push" -> 0
@@ -20,51 +35,31 @@ class ChangeBackgroundBlock: BlockBase() {
             "Pop" -> 2
             else -> throw CompileError("Not supported value on ChangeBackgroundBlock")
         }
-        image = context["Images"].string!!
+        image = CalculableValue(context["Images"].string!!, true)
     }
 
     override fun onEnter() {
         when (type) {
-            0 -> image.split("\n").forEach {
-                base.appendRenderer(ImageRenderer(it))
+            0 -> {
+                image.updateValue()
+                base.appendRenderer(BackgroundRenderer(image))
             }
-
             1 -> {
-                base.clearRenderer(base.Pre)
-                image.split("\n").forEach {
-                    base.appendRenderer(ImageRenderer(it))
-                }
+                image.updateValue()
+                base.clearRenderer(ScriptGui.RenderParse.Pre)
+                base.appendRenderer(BackgroundRenderer(image))
             }
-
-            2 -> base.popRenderer(base.Pre)
+            2 -> {
+                poppedRenderer.push(base.popRenderer(ScriptGui.RenderParse.Pre))
+            }
         }
     }
 
-    private class ImageRenderer(val image: String) : IRendererBlock {
-        var imageText = ClientDataHandler.decodeDynamicValue(image)
-        init {
-            MinecraftForge.EVENT_BUS.register(this)
-        }
-
-        @SubscribeEvent
-        fun onDynamicValueUpdated(event: OnDynamicValueUpdateEvent) {
-            imageText = ClientDataHandler.decodeDynamicValue(image)
-        }
-
-        override fun onRemovedFromQueue() {
-            MinecraftForge.EVENT_BUS.unregister(this)
-        }
-
-        override fun render() {
-            ClientDataHandler.decodeDynamicValue(imageText).run {
-                if (this != "null")
-                    RenderUtil.useExtTexture(this) {
-                        RenderUtil.render()
-                    }
-            }
-        }
-
-        override val renderParse: ScriptGui.RenderParse
-            get() = ScriptGui.RenderParse.Pre
+    private val poppedRenderer = Stack<ScriptRenderer>()
+    override fun onRevert() {
+        super.onRevert()
+        if(type == 2)
+            base.appendRenderer(poppedRenderer.pop())
+        else base.popRenderer(ScriptGui.RenderParse.Pre)
     }
 }

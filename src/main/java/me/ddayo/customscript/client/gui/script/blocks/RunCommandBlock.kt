@@ -25,9 +25,4 @@ class RunCommandBlock: BlockBase(), ISubscribeDynamicValueBlock {
         else CustomScript.network.sendToServer(ServerSideCommandNetworkHandler(command.string))
         super.onEnter()
     }
-
-    override fun onUpdateValue() {
-        super.onUpdateValue()
-        command.updateValue()
-    }
 }

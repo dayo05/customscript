@@ -46,13 +46,6 @@ class TextBlock: BlockBase() {
                 else fontedText.render(textX.double, textY.double, textColor)
             }
         }
-
-        override fun onUpdateValue() {
-            text.updateValue()
-            textX.updateValue()
-            textY.updateValue()
-            textScale.updateValue()
-        }
     }
     private lateinit var text: CalculableValue
     private lateinit var textX: CalculableValue

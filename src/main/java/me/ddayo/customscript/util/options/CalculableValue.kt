@@ -1,6 +1,7 @@
 package me.ddayo.customscript.util.options
 
 import jdk.nashorn.api.scripting.NashornScriptEngineFactory
+import org.apache.logging.log4j.LogManager
 import javax.script.ScriptException
 import kotlin.math.roundToInt
 import kotlin.math.roundToLong
@@ -15,12 +16,6 @@ class CalculableValue(private val original: String, private val stringMode: Bool
                 ?: value.toBigIntegerOrNull() ?: value
             )
         }
-    }
-
-    private lateinit var calculated: Any
-
-    init {
-        updateValue()
     }
 
     val double: Double
@@ -62,8 +57,8 @@ class CalculableValue(private val original: String, private val stringMode: Bool
             else -> false
         }
 
-    fun updateValue() {
-        calculated = try {
+    private val calculated
+        get() = try {
             if (stringMode) js.eval(
                 "\"${
                     original.replace("\\", "\\\\")
@@ -73,5 +68,4 @@ class CalculableValue(private val original: String, private val stringMode: Bool
         } catch (e: ScriptException) {
             0
         }
-    }
 }

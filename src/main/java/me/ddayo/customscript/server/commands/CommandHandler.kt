@@ -6,7 +6,7 @@ import net.minecraft.command.CommandSource
 object CommandHandler {
     private val commands = listOf(CustomScriptCommand)
     fun register(dispatcher: CommandDispatcher<CommandSource>) {
-        commands.forEach { CustomScriptCommand.register(dispatcher) }
+        commands.forEach { it.register(dispatcher) }
     }
 
     interface ICommand {

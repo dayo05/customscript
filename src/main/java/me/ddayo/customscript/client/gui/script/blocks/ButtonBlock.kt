@@ -30,14 +30,6 @@ class ButtonBlock: PendingBlock() {
 
         override val renderParse: ScriptGui.RenderParse
             get() = ScriptGui.RenderParse.Main
-
-        override fun onUpdateValue() {
-            buttonX.updateValue()
-            buttonY.updateValue()
-            buttonWidth.updateValue()
-            buttonHeight.updateValue()
-            buttonImage.updateValue()
-        }
     }
 
     private lateinit var buttonX: CalculableValue

@@ -19,10 +19,6 @@ class ChangeBackgroundBlock: BlockBase() {
                     RenderUtil.useExtTexture(it) { RenderUtil.render() }
             }
         }
-
-        override fun onUpdateValue() {
-            image.updateValue()
-        }
     }
 
     private lateinit var image: CalculableValue
@@ -41,11 +37,9 @@ class ChangeBackgroundBlock: BlockBase() {
     override fun onEnter() {
         when (type) {
             0 -> {
-                image.updateValue()
                 base.appendRenderer(BackgroundRenderer(image))
             }
             1 -> {
-                image.updateValue()
                 base.clearRenderer(ScriptGui.RenderParse.Pre)
                 base.appendRenderer(BackgroundRenderer(image))
             }

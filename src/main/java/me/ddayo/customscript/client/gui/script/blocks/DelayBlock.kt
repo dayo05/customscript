@@ -58,9 +58,4 @@ class DelayBlock: PendingBlock(), ISubscribeDynamicValueBlock {
         1 -> if (System.currentTimeMillis() - enterTime > timeLimit.long) PendingResult.Pass else PendingResult.Deny
         else -> PendingResult.Deny
     }
-
-    override fun onUpdateValue() {
-        super.onUpdateValue()
-        timeLimit.updateValue()
-    }
 }

@@ -5,6 +5,10 @@ import me.ddayo.customscript.CustomScript
 import me.ddayo.customscript.client.utils.Resource
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.screen.Screen
+import net.minecraft.client.renderer.BufferBuilder
+import net.minecraft.client.renderer.Tessellator
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats
+import net.minecraft.client.renderer.vertex.VertexFormat
 import net.minecraft.util.ResourceLocation
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.BufferUtils
@@ -19,7 +23,8 @@ object RenderUtil {
      * @param tex location of texture, this will convert as ResourceLocation
      * @see net.minecraft.client.renderer.texture.TextureManager.bindTexture
      */
-    private fun bindTexture(tex: String) = Minecraft.getInstance().textureManager.bindTexture(ResourceLocation(CustomScript.MOD_ID, "textures/$tex"))
+    private fun bindTexture(tex: String) =
+        Minecraft.getInstance().textureManager.bindTexture(ResourceLocation(CustomScript.MOD_ID, "textures/$tex"))
 
     /**
      * Cached image GL IDs
@@ -35,7 +40,7 @@ object RenderUtil {
      * @see iab
      */
     private fun withValidate(x: () -> Unit) {
-        if(iab) throw IllegalStateException("Trying to overwrite texture")
+        if (iab) throw IllegalStateException("Trying to overwrite texture")
         iab = true
         x()
         iab = false
@@ -63,7 +68,7 @@ object RenderUtil {
      * @see withValidate
      */
     fun useExtTexture(str: String, f: () -> Unit) {
-        if(!images.containsKey(str)) {
+        if (!images.containsKey(str)) {
             images[str] = -1
             Resource.from(Resource.Image, str) {
                 LogManager.getLogger().info("$str loaded")
@@ -114,8 +119,7 @@ object RenderUtil {
             }
             bindLoadingTexture()
             withValidate(f)
-        }
-        else if(images[str] != -1) useTexture(images[str]!!, f)
+        } else if (images[str] != -1) useTexture(images[str]!!, f)
         else {
             bindLoadingTexture()
             withValidate(f)
@@ -145,7 +149,17 @@ object RenderUtil {
             GL21.glTexParameteri(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAG_FILTER, GL21.GL_LINEAR)
             GL21.glPixelStorei(GL21.GL_UNPACK_ALIGNMENT, 1)
 
-            GL21.glTexImage2D(GL21.GL_TEXTURE_2D, 0, GL21.GL_ALPHA, width, height, 0, GL21.GL_ALPHA, GL21.GL_UNSIGNED_BYTE, buf)
+            GL21.glTexImage2D(
+                GL21.GL_TEXTURE_2D,
+                0,
+                GL21.GL_ALPHA,
+                width,
+                height,
+                0,
+                GL21.GL_ALPHA,
+                GL21.GL_UNSIGNED_BYTE,
+                buf
+            )
         }
         return tex
     }
@@ -154,7 +168,8 @@ object RenderUtil {
      * Check is resource exists on internal part of mod.
      * @return Is resource exists
      */
-    fun resourceExists(tex: String) = Minecraft.getInstance().resourceManager.hasResource(ResourceLocation(CustomScript.MOD_ID, tex))
+    fun resourceExists(tex: String) =
+        Minecraft.getInstance().resourceManager.hasResource(ResourceLocation(CustomScript.MOD_ID, tex))
 
     /**
      * Check is resource exists on external directory
@@ -262,7 +277,7 @@ object RenderUtil {
      * @param tex resource to remove cache
      * @see bindTexture
      */
-    fun removeTexture(tex: String){
+    fun removeTexture(tex: String) {
         GL21.glDeleteTextures(images[tex]!!)
         images.remove(tex)
     }

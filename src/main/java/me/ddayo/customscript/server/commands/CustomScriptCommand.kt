@@ -19,6 +19,7 @@ import net.minecraft.command.arguments.UUIDArgument
 import net.minecraft.util.text.StringTextComponent
 import net.minecraftforge.fml.network.NetworkDirection
 import net.minecraftforge.fml.server.ServerLifecycleHooks
+import org.apache.logging.log4j.LogManager
 import java.util.*
 
 object CustomScriptCommand: CommandHandler.ICommand {
@@ -209,22 +210,26 @@ object CustomScriptCommand: CommandHandler.ICommand {
     }
 
     private fun execute(it: CommandContext<CommandSource>): Int {
-        val script = it.getArgument("script", String::class.java)
-        val players = try {
-            GameProfileArgument.getGameProfiles(it, "player")
-                .map { profile -> ServerLifecycleHooks.getCurrentServer().playerList.players.first { it.uniqueID == profile.id } }
-        } catch (_: IllegalArgumentException) {
-            listOf(it.source.asPlayer())
-        }
-        val begin = try {
-            it.getArgument("begin position", String::class.java)
-        } catch (_: IllegalArgumentException) {
-            "default"
-        }
+        try {
+            val script = it.getArgument("script", String::class.java)
+            val players = try {
+                GameProfileArgument.getGameProfiles(it, "player")
+                    .map { profile -> ServerLifecycleHooks.getCurrentServer().playerList.players.first { it.uniqueID == profile.id } }
+            } catch (_: IllegalArgumentException) {
+                listOf(it.source.asPlayer())
+            }
+            val begin = try {
+                it.getArgument("begin position", String::class.java)
+            } catch (_: IllegalArgumentException) {
+                "default"
+            }
 
-        if (CustomScript.isClient)
-            Minecraft.getInstance().displayGuiScreen(ScriptGui(ScriptMode.Gui, script, begin))
-        else ServerDataHandler.openScriptOnPlayers(script, begin, *players.toTypedArray())
+            if (CustomScript.isClient)
+                Minecraft.getInstance().displayGuiScreen(ScriptGui(ScriptMode.Gui, script, begin))
+            else ServerDataHandler.openScriptOnPlayers(script, begin, *players.toTypedArray())
+        } catch(e: Exception) {
+            LogManager.getLogger().error(e.message)
+        }
         return 1
     }
 }

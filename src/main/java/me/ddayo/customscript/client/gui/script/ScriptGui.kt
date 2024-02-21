@@ -15,6 +15,7 @@ import net.minecraft.client.Minecraft
 import net.minecraft.util.text.StringTextComponent
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.eventbus.api.SubscribeEvent
+import net.minecraftforge.registries.ForgeRegistries
 import org.apache.maven.artifact.versioning.DefaultArtifactVersion
 import org.lwjgl.opengl.GL21
 import java.io.File
@@ -156,6 +157,8 @@ class ScriptGui(private val mode: ScriptMode, scriptFile: String, beginPos: Stri
                 renderable[it]!!.forEach { f -> f.render() }
             }
         }
+
+        //ForgeRegistries.ITEMS.getValue()
     }
 
     override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int) = mouseHandler(mouseX, mouseY) { mx, my ->
@@ -247,6 +250,7 @@ class ScriptGui(private val mode: ScriptMode, scriptFile: String, beginPos: Stri
             if (it is ISubscribeDynamicValueBlock)
                 it.onUpdateValue()
         }
+        Minecraft.getInstance().isMultiplayerEnabled
         renderable.forEach { it.value.forEach { it.onUpdateValue() } }
     }
 }

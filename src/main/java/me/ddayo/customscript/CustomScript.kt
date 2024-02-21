@@ -33,6 +33,7 @@ class CustomScriptMod {
     fun clientInit(event: FMLClientSetupEvent) {
         CustomScript.isClient = true
         MinecraftForge.EVENT_BUS.register(ClientEventHandler)
+        // MinecraftForge.EVENT_BUS.register(ServerEventHandler)
         File("customscript").mkdir()
     }
 

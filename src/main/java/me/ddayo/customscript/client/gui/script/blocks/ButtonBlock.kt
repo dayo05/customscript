@@ -37,8 +37,7 @@ class ButtonBlock: PendingBlock() {
     private lateinit var buttonWidth: CalculableValue
     private lateinit var buttonHeight: CalculableValue
     private lateinit var buttonImage: CalculableValue
-    var autoSize = false
-        private set
+    private var autoSize = false
 
     override fun parseContext(context: Option) {
         buttonX = CalculableValue(context["ButtonX"].string!!)
@@ -49,9 +48,8 @@ class ButtonBlock: PendingBlock() {
         autoSize = context["AutoSize"].bool ?: false
     }
 
-    override fun onEnter() {
-        base.appendRenderer(ButtonRenderer(buttonX, buttonY, buttonWidth, buttonHeight, buttonImage, autoSize))
-    }
+    override val rendererInstance: ScriptRenderer?
+        get() = ButtonRenderer(buttonX, buttonY, buttonWidth, buttonHeight, buttonImage, autoSize)
 
     override fun validateKeyInput(gui: ScriptGui, keyCode: Int, scanCode: Int, modifier: Int) = PendingResult.Pass
 

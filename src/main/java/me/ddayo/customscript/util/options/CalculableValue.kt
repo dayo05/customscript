@@ -57,7 +57,7 @@ class CalculableValue(private val original: String, private val stringMode: Bool
             else -> false
         }
 
-    private val calculated
+    val calculated
         get() = try {
             if (stringMode) js.eval(
                 "\"${

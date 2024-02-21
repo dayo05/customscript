@@ -31,6 +31,7 @@ class TextBlock: BlockBase() {
                 fontedText.free()
         }
         override fun render() {
+            GL21.glEnable(GL21.GL_BLEND)
             RenderUtil.push {
                 if(!usingCustomFont) {
                     GL21.glScaled(textScale.double, textScale.double, textScale.double)
@@ -44,6 +45,7 @@ class TextBlock: BlockBase() {
                     )
                 }
                 else fontedText.render(textX.double, textY.double, textColor)
+                GL21.glEnable(GL21.GL_ALPHA_TEST)
             }
         }
     }
@@ -65,7 +67,6 @@ class TextBlock: BlockBase() {
         textColor = (context["TextColor"].string ?: "ffffff").toUInt(16)
     }
 
-    override fun onEnter() {
-        base.appendRenderer(TextScriptRenderer(text, textX, textY, textScale, textFont, textColor))
-    }
+    override val rendererInstance: ScriptRenderer?
+        get() = TextScriptRenderer(text, textX, textY, textScale, textFont, textColor)
 }

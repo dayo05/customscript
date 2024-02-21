@@ -22,6 +22,8 @@ abstract class BlockBase {
             registerBlock("ChangeBackgroundBlock", "ChangeBackgroundContext", ChangeBackgroundBlock::class.java)
             registerBlock("RunCommandBlock", "RunCommandContext", RunCommandBlock::class.java)
             registerBlock("DelayBlock", "DelayContext", DelayBlock::class.java)
+            registerBlock("JavaScriptBlock", "JavaScriptContext", JavaScriptBlock::class.java)
+            registerBlock("RenderItemBlock", "RenderItemContext", RenderItemBlock::class.java)
         }
 
         fun createBlock(name: String, opt: Option, base: ScriptGui): BlockBase {
@@ -41,10 +43,24 @@ abstract class BlockBase {
 
     protected val logger = LogManager.getLogger()
 
-    abstract fun parseContext(context: Option)
+    fun initBlock(context: Option) {
+        parseContext(context)
+        renderer
+    }
+    protected abstract fun parseContext(context: Option)
     public var ns = 0
         private set
 
-    open fun onEnter() {}
-    open fun onRevert() {}
+    open fun onEnter() {
+        renderer?.let {
+            base.appendRenderer(it)
+        }
+    }
+    open fun onRevert() {
+        renderer?.let {
+            base.popRenderer(it)
+        }
+    }
+    open val rendererInstance: ScriptRenderer? = null
+    protected val renderer by lazy { rendererInstance }
 }

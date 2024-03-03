@@ -1,6 +1,6 @@
 package me.ddayo.customscript.client.gui.script.blocks
 
-import me.ddayo.customscript.util.options.CalculableValue
+import me.ddayo.customscript.util.js.CalculableValueManager
 import me.ddayo.customscript.util.options.Option
 import me.ddayo.customscript.util.options.Option.Companion.string
 
@@ -12,6 +12,6 @@ class JavaScriptBlock: BlockBase() {
 
     override fun onEnter() {
         super.onEnter()
-        CalculableValue(script).calculated
+        CalculableValueManager.execute(script)
     }
 }

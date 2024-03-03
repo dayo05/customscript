@@ -15,7 +15,7 @@ apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'kotlin'
 
 group = 'me.ddayo'
-version = '0.8'
+version = '0.8.2'
 
 java {
     archivesBaseName = 'customscript'

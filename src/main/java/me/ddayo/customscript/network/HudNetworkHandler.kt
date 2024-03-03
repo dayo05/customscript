@@ -27,8 +27,9 @@ class HudNetworkHandler() {
                 ctx.enqueueWork {
                     if(isEnable)
                         Minecraft.getInstance().let {
-                            ClientDataHandler.enabledHud[script] = ScriptGui(ScriptMode.Hud, script, "hud").apply {
-                                init(it, it.mainWindow.scaledWidth, it.mainWindow.scaledHeight)
+                            ScriptGui.fromFile(ScriptMode.Hud, script, "hud")?.let { sc ->
+                                sc.init(it, it.mainWindow.scaledWidth, it.mainWindow.scaledHeight)
+                                ClientDataHandler.enabledHud[script] = sc
                             }
                         }
                     else {

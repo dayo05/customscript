@@ -26,7 +26,7 @@ class OpenScriptNetworkHandler() {
             val ctx = ctxSuf.get()
             ctx.packetHandled = true
             ctx.enqueueWork {
-                Minecraft.getInstance().displayGuiScreen(ScriptGui(ScriptMode.Gui, script, begin))
+                Minecraft.getInstance().displayGuiScreen(ScriptGui.fromFile(ScriptMode.Gui, script, begin))
             }
         }
 

@@ -1,42 +1,61 @@
 package me.ddayo.customscript.client.gui.script
 
 import com.mojang.blaze3d.matrix.MatrixStack
+import com.mojang.blaze3d.systems.RenderSystem
 import me.ddayo.customscript.CustomScript
 import me.ddayo.customscript.client.event.OnDynamicValueUpdateEvent
 import me.ddayo.customscript.client.gui.script.arrows.Arrow
 import me.ddayo.customscript.client.gui.GuiBase
+import me.ddayo.customscript.client.gui.RenderUtil
 import me.ddayo.customscript.client.gui.script.blocks.*
 import me.ddayo.customscript.network.CloseGuiNetworkHandler
+import me.ddayo.customscript.util.js.CalculableValueManager
+import me.ddayo.customscript.util.js.ICalculableHolder
 import me.ddayo.customscript.util.options.CompileError
 import me.ddayo.customscript.util.options.Option
 import me.ddayo.customscript.util.options.Option.Companion.bool
 import me.ddayo.customscript.util.options.Option.Companion.string
 import net.minecraft.client.Minecraft
+import net.minecraft.util.Util
 import net.minecraft.util.text.StringTextComponent
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.eventbus.api.SubscribeEvent
 import net.minecraftforge.registries.ForgeRegistries
+import org.apache.logging.log4j.LogManager
 import org.apache.maven.artifact.versioning.DefaultArtifactVersion
 import org.lwjgl.opengl.GL21
 import java.io.File
 import java.util.*
 
 
-class ScriptGui(private val mode: ScriptMode, scriptFile: String, beginPos: String): GuiBase() {
+class ScriptGui(private val mode: ScriptMode, script: Option, beginPos: String) : GuiBase() {
     companion object {
         val minimumRequiredVersion = DefaultArtifactVersion("0.8")
+
+        fun fromFile(mode: ScriptMode, scriptFile: String, beginPos: String): ScriptGui? {
+            val scriptFileRoot =
+                if (CustomScript.isTest) File("dummy") else File(Minecraft.getInstance().gameDir, CustomScript.MOD_ID)
+            val scFile = if (CustomScript.isTest) File(scriptFile) else File(scriptFileRoot, scriptFile)
+            if (!scFile.exists() || !scFile.isFile || !scFile.canRead()) {
+                Minecraft.getInstance().player?.sendMessage(
+                    StringTextComponent("Cannot open script: $scriptFile"),
+                    Util.DUMMY_UUID
+                )
+                LogManager.getLogger().warn("Cannot open file: $scriptFile")
+                return null
+            }
+            return ScriptGui(mode, Option.readOption(scFile.readText()), beginPos)
+        }
+
+        fun fromString(mode: ScriptMode, script: String, beginPos: String): ScriptGui {
+            return ScriptGui(mode, Option.readOption(script), beginPos)
+        }
     }
 
     enum class RenderParse {
         Pre, Main, Post
     }
 
-    private val scriptFileRoot =
-        if (CustomScript.isTest) File("dummy") else File(Minecraft.getInstance().gameDir, CustomScript.MOD_ID)
-    private val scFile = if (CustomScript.isTest) File(scriptFile) else File(scriptFileRoot, scriptFile)
-
-    private val script =
-        Option.readOption(if (scFile.exists() && scFile.isFile && scFile.canRead()) scFile.readText() else "")
 
     init {
         MinecraftForge.EVENT_BUS.register(this)
@@ -79,16 +98,12 @@ class ScriptGui(private val mode: ScriptMode, scriptFile: String, beginPos: Stri
         if (current.size > 2) {
             if (current.any { it !is PendingBlock }) throw CompileError("There are two+ non-multi-selectable blocks which is connect to current pos")
             current.forEach {
-                if (it is ISubscribeDynamicValueBlock)
-                    it.onUpdateValue()
                 it.onEnter()
             }
             pending = true
         } else if (current.isEmpty()) closeScreen()
         else {
             current.first().let {
-                if (it is ISubscribeDynamicValueBlock)
-                    it.onUpdateValue()
                 it.onEnter()
                 pending = it is PendingBlock
             }
@@ -135,8 +150,6 @@ class ScriptGui(private val mode: ScriptMode, scriptFile: String, beginPos: Stri
             if (!CustomScript.isTest) closeScreen()
         } else {
             current.first().let {
-                if (it is ISubscribeDynamicValueBlock)
-                    it.onUpdateValue()
                 it.onEnter()
                 pending = it is PendingBlock
             }
@@ -151,12 +164,29 @@ class ScriptGui(private val mode: ScriptMode, scriptFile: String, beginPos: Stri
 
     override fun render(matrixStack: MatrixStack, mouseX: Int, mouseY: Int, partialTicks: Float) {
         renderInit
-        GL21.glEnable(GL21.GL_BLEND)
-        FHDScale {
-            RenderParse.values().forEach {
-                renderable[it]!!.forEach { f -> f.render() }
+
+        Minecraft.getInstance().mainWindow.let { w ->
+            CalculableValueManager.setValueQuiet(
+                "mouseX",
+                (mouseX - (w.scaledWidth - w.scaledHeight * 16 / 9) / 2) * 1080 / w.scaledHeight
+            )
+            CalculableValueManager.setValueQuiet(
+                "mouseY",
+                mouseY * 1080 / w.scaledHeight
+            )
+            CalculableValueManager.setValueQuiet("partialTick", partialTicks)
+        }
+        CalculableValueManager.frame()
+
+        RenderSystem.enableBlend()
+        RenderUtil.renderer.loadMatrix(matrixStack) {
+            FHDScale {
+                RenderParse.values().forEach {
+                    renderable[it]!!.forEach { f -> if(!f.isLoading) f.render(RenderUtil.renderer) }
+                }
             }
         }
+        RenderSystem.disableBlend()
 
         //ForgeRegistries.ITEMS.getValue()
     }
@@ -207,11 +237,21 @@ class ScriptGui(private val mode: ScriptMode, scriptFile: String, beginPos: Stri
         return super.keyReleased(keyCode, scanCode, modifiers)
     }
 
-    fun appendRenderer(block: ScriptRenderer) = renderable[block.renderParse]!!.add(block)
+    fun appendRenderer(block: ScriptRenderer) {
+        renderable[block.renderParse]!!.add(block)
+        if (block is ICalculableHolder)
+            CalculableValueManager.dynamicValueHolder.add(block)
+    }
+
     fun popRenderer(block: ScriptRenderer) = popRenderer(block.renderParse)
-    fun popRenderer(parse: RenderParse) = renderable[parse]!!.removeLast().apply {
+    fun popRenderer(parse: RenderParse): ScriptRenderer {
+        val r = renderable[parse]!!.removeLast().apply {
             onRemovedFromQueue()
         }
+        if(r is ICalculableHolder)
+            CalculableValueManager.dynamicValueHolder.remove(r)
+        return r
+    }
 
     fun clearRenderer(block: ScriptRenderer) = clearRenderer(block.renderParse)
     fun clearRenderer(parse: RenderParse) {
@@ -242,16 +282,6 @@ class ScriptGui(private val mode: ScriptMode, scriptFile: String, beginPos: Stri
 
         MinecraftForge.EVENT_BUS.unregister(this)
         //RenderUtil.removeAllTextures()
-    }
-
-    @SubscribeEvent
-    fun onDynamicValueUpdated(event: OnDynamicValueUpdateEvent) {
-        current.forEach {
-            if (it is ISubscribeDynamicValueBlock)
-                it.onUpdateValue()
-        }
-        Minecraft.getInstance().isMultiplayerEnabled
-        renderable.forEach { it.value.forEach { it.onUpdateValue() } }
     }
 }
 

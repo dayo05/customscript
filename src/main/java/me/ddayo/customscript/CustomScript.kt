@@ -2,9 +2,19 @@ package me.ddayo.customscript
 
 import me.ddayo.customscript.CustomScript.MOD_ID
 import me.ddayo.customscript.client.ClientEventHandler
+import me.ddayo.customscript.client.gui.FontResource
+import me.ddayo.customscript.client.gui.ImageResource
+import me.ddayo.customscript.client.gui.Resource
 import me.ddayo.customscript.network.*
 import me.ddayo.customscript.server.ServerEventHandler
+import net.minecraft.client.Minecraft
+import net.minecraft.client.resources.ReloadListener
+import net.minecraft.profiler.IProfiler
+import net.minecraft.resources.IResourceManager
+import net.minecraft.resources.SimpleReloadableResourceManager
 import net.minecraft.util.ResourceLocation
+import net.minecraft.util.Util
+import net.minecraft.util.text.StringTextComponent
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext
@@ -15,8 +25,10 @@ import net.minecraftforge.fml.event.lifecycle.FMLDedicatedServerSetupEvent
 import net.minecraftforge.fml.network.NetworkDirection
 import net.minecraftforge.fml.network.NetworkRegistry
 import net.minecraftforge.fml.network.simple.SimpleChannel
+import org.apache.logging.log4j.LogManager
 import java.io.File
 import java.util.*
+import java.util.concurrent.CompletableFuture
 
 @Mod(MOD_ID)
 class CustomScriptMod {
@@ -35,6 +47,20 @@ class CustomScriptMod {
         MinecraftForge.EVENT_BUS.register(ClientEventHandler)
         // MinecraftForge.EVENT_BUS.register(ServerEventHandler)
         File("customscript").mkdir()
+
+        event.enqueueWork {
+            Minecraft.getInstance().apply {
+                (resourceManager as SimpleReloadableResourceManager).addReloadListener(object :
+                    ReloadListener<Unit>() {
+                    override fun prepare(resourceManagerIn: IResourceManager, profilerIn: IProfiler) {}
+
+                    override fun apply(objectIn: Unit, resourceManagerIn: IResourceManager, profilerIn: IProfiler) {
+                        Resource.clearResource()
+                        LogManager.getLogger().info("Custom script resource has been cleared via minecraft")
+                    }
+                })
+            }
+        }
     }
 
     @SubscribeEvent

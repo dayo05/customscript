@@ -4,18 +4,18 @@ import com.mojang.brigadier.CommandDispatcher
 import com.mojang.brigadier.arguments.StringArgumentType
 import com.mojang.brigadier.context.CommandContext
 import me.ddayo.customscript.CustomScript
-import me.ddayo.customscript.client.gui.RenderUtil
-import me.ddayo.customscript.client.gui.font.FontManager
+import me.ddayo.customscript.client.gui.FontResource
+import me.ddayo.customscript.client.gui.ImageResource
 import me.ddayo.customscript.client.gui.script.ScriptGui
 import me.ddayo.customscript.client.gui.script.ScriptMode
-import me.ddayo.customscript.network.ClearCacheNetworkHandler.CacheType
 import me.ddayo.customscript.network.ClearCacheNetworkHandler
+import me.ddayo.customscript.network.ClearCacheNetworkHandler.CacheType
+import me.ddayo.customscript.server.ServerConfiguration
 import me.ddayo.customscript.server.ServerDataHandler
 import net.minecraft.client.Minecraft
 import net.minecraft.command.CommandSource
 import net.minecraft.command.Commands
 import net.minecraft.command.arguments.GameProfileArgument
-import net.minecraft.command.arguments.UUIDArgument
 import net.minecraft.util.text.StringTextComponent
 import net.minecraftforge.fml.network.NetworkDirection
 import net.minecraftforge.fml.server.ServerLifecycleHooks
@@ -95,7 +95,7 @@ object CustomScriptCommand: CommandHandler.ICommand {
                                 })
                             .executes {
                                 if (CustomScript.isClient)
-                                    RenderUtil.removeAllTextures()
+                                    ImageResource.clearResource()
                                 else CustomScript.network.sendTo(
                                     ClearCacheNetworkHandler(CacheType.IMAGE),
                                     it.source.asPlayer().connection.networkManager, NetworkDirection.PLAY_TO_CLIENT
@@ -120,7 +120,7 @@ object CustomScriptCommand: CommandHandler.ICommand {
                                 })
                             .executes {
                                 if (CustomScript.isClient)
-                                    FontManager.removeAllFont()
+                                    FontResource.clearResource()
                                 else CustomScript.network.sendTo(
                                     ClearCacheNetworkHandler(CacheType.FONT),
                                     it.source.asPlayer().connection.networkManager, NetworkDirection.PLAY_TO_CLIENT
@@ -203,6 +203,11 @@ object CustomScriptCommand: CommandHandler.ICommand {
                         1
                     })
         )
+        .then(Commands.literal("reload-config")
+            .executes {
+                ServerConfiguration.loadConfig()
+                1
+            })
 
 
     override fun register(dispatcher: CommandDispatcher<CommandSource>) {
@@ -225,7 +230,7 @@ object CustomScriptCommand: CommandHandler.ICommand {
             }
 
             if (CustomScript.isClient)
-                Minecraft.getInstance().displayGuiScreen(ScriptGui(ScriptMode.Gui, script, begin))
+                Minecraft.getInstance().displayGuiScreen(ScriptGui.fromFile(ScriptMode.Gui, script, begin))
             else ServerDataHandler.openScriptOnPlayers(script, begin, *players.toTypedArray())
         } catch(e: Exception) {
             LogManager.getLogger().error(e.message)

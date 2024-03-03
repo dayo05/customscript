@@ -1,17 +1,19 @@
 package me.ddayo.customscript.client.gui.script.blocks
 
 import me.ddayo.customscript.client.gui.script.ScriptGui
-import me.ddayo.customscript.util.options.CalculableValue
+import me.ddayo.customscript.util.js.AbstractCalculable
+import me.ddayo.customscript.util.js.DoubleCalculable
+import me.ddayo.customscript.util.js.ICalculableHolder
 import me.ddayo.customscript.util.options.CompileError
 import me.ddayo.customscript.util.options.Option
 import me.ddayo.customscript.util.options.Option.Companion.double
 import me.ddayo.customscript.util.options.Option.Companion.string
 
-class DelayBlock: PendingBlock(), ISubscribeDynamicValueBlock {
+class DelayBlock: PendingBlock(), ICalculableHolder {
     private var type = 0
     private var enterTime = -1L
     private var key = ""
-    private lateinit var timeLimit: CalculableValue
+    private lateinit var timeLimit: DoubleCalculable
     override fun parseContext(context: Option) {
         type = when (context["Type"].string) {
             "Key" -> {
@@ -20,7 +22,7 @@ class DelayBlock: PendingBlock(), ISubscribeDynamicValueBlock {
             }
 
             "Time" -> {
-                timeLimit = CalculableValue("(${context["Time"].string!!}) * 1000")
+                timeLimit = DoubleCalculable(context["Time"].string!!)
                 1
             }
 
@@ -55,7 +57,9 @@ class DelayBlock: PendingBlock(), ISubscribeDynamicValueBlock {
 
     override fun tick() = when (type) {
         0 -> PendingResult.Deny
-        1 -> if (System.currentTimeMillis() - enterTime > timeLimit.long) PendingResult.Pass else PendingResult.Deny
+        1 -> if (System.currentTimeMillis() - enterTime > timeLimit.get * 1000L) PendingResult.Pass else PendingResult.Deny
         else -> PendingResult.Deny
     }
+
+    override val calculable by lazy { if(::timeLimit.isInitialized) listOf(timeLimit) else listOf() }
 }

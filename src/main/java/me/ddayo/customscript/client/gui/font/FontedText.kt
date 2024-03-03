@@ -1,20 +1,23 @@
 package me.ddayo.customscript.client.gui.font
 
+import com.mojang.blaze3d.systems.RenderSystem
+import me.ddayo.customscript.client.gui.FontResource
 import me.ddayo.customscript.client.gui.RenderUtil
 import org.lwjgl.opengl.GL21
 import java.nio.ByteBuffer
 
-class FontedText(private val font: Font, private var text: String) {
+class FontedText(private val font: FontResource, private var text: String) {
     private lateinit var buf: ByteBuffer
     private var tex: Int = -1
+
     var width = 0
         private set
     private var height = 0
 
+    private var needReload = true
     fun updateText(text: String) {
         this.text = text
-        if(tex != -1)
-            free()
+        needReload = true
     }
 
     fun setHeight(height: Int): FontedText {
@@ -22,36 +25,36 @@ class FontedText(private val font: Font, private var text: String) {
         return this
     }
 
-    private fun bindBuffer() {
-        if(font.isAllocated)
-            font.allocate()
+    private fun reloadBuffer() {
         this.width = font.calculateWidth(text, height)
         buf = font.getBitmap(text, height)
-        tex = RenderUtil.bindGrayscaleBuffer(buf, width, height)
-    }
 
-    fun useBuf(x: () -> Unit) {
-        if(tex == -1) bindBuffer()
-        RenderUtil.useTexture(tex, x)
+        if(tex == -1)
+            tex = GL21.glGenTextures()
+        RenderUtil.renderer.useTexture(tex) {
+            RenderUtil.renderer.bindGrayscaleBuffer(buf, width, height)
+        }
+        needReload = false
     }
 
     fun free() {
         GL21.glDeleteTextures(tex)
         tex = -1
+        needReload = true
     }
 
     fun render(textX: Double, textY: Double, color: UInt) {
-        if(!font.isAllocated)
-            free()
-        RenderUtil.push {
-            GL21.glEnable(GL21.GL_TEXTURE_2D)
+        RenderSystem.enableBlend()
+        if(needReload)
+            reloadBuffer()
+
+        RenderUtil.renderer.push {
             val b = (color % 256u).toInt() / 256.0
             val g = ((color / 256u) % 256u).toInt() / 256.0
             val r = ((color / 256u / 256u) % 256u).toInt() / 256.0
             //val a = (color / 256u / 256u / 256u).toInt() / 256.0
-            GL21.glColor3d(r, g, b)
-            useBuf {
-                RenderUtil.render(textX, textY, width.toDouble(), height.toDouble())
+            RenderUtil.renderer.useTexture(tex) {
+                RenderUtil.renderer.renderColorTex(textX, textY, width.toDouble(), height.toDouble(), r, g, b, 1.0)
             }
         }
     }

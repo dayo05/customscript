@@ -1,6 +1,8 @@
 package me.ddayo.customscript.client.gui.script.blocks
 
 import me.ddayo.customscript.client.gui.script.ScriptGui
+import me.ddayo.customscript.util.js.CalculableValueManager
+import me.ddayo.customscript.util.js.ICalculableHolder
 import me.ddayo.customscript.util.options.CompileError
 import me.ddayo.customscript.util.options.Option
 import me.ddayo.customscript.util.options.Option.Companion.int
@@ -24,6 +26,7 @@ abstract class BlockBase {
             registerBlock("DelayBlock", "DelayContext", DelayBlock::class.java)
             registerBlock("JavaScriptBlock", "JavaScriptContext", JavaScriptBlock::class.java)
             registerBlock("RenderItemBlock", "RenderItemContext", RenderItemBlock::class.java)
+            registerBlock("ModifyVariableBlock", "ModifyVariableContext", ModifyVariableBlock::class.java)
         }
 
         fun createBlock(name: String, opt: Option, base: ScriptGui): BlockBase {
@@ -52,6 +55,8 @@ abstract class BlockBase {
         private set
 
     open fun onEnter() {
+        if (this is ICalculableHolder)
+            recalculateAll()
         renderer?.let {
             base.appendRenderer(it)
         }
@@ -61,6 +66,7 @@ abstract class BlockBase {
             base.popRenderer(it)
         }
     }
+
     open val rendererInstance: ScriptRenderer? = null
     protected val renderer by lazy { rendererInstance }
 }

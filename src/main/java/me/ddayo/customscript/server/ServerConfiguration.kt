@@ -14,7 +14,7 @@ object ServerConfiguration {
     var scriptValueUpdater = emptyMap<String, MutableList<String>>().toMutableMap()
         private set
 
-    init {
+    fun loadConfig() {
         allowServerSideCommand = serverOption["Allow-server-side-command"].string == "True"
         serverOption["Script"].forEach {
             it["Value"].forEach { v ->
@@ -25,5 +25,9 @@ object ServerConfiguration {
         }
 
         LogManager.getLogger().info("Server configuration load finished")
+    }
+
+    init {
+        loadConfig()
     }
 }
